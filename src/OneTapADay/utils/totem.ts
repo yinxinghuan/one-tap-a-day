@@ -25,8 +25,11 @@ export function totemPrompt(dayString: string): string {
   const { word, tone } = themeForDay(dayString);
   return [
     `A symbolic ritual emblem of a ${word} — ${tone}.`,
-    // Style: traditional two-color woodblock print (ink + cinnabar).
-    `Two-color woodblock print: deep ink black and aged cinnabar red on cream paper.`,
+    // Style: traditional two-color woodblock print, but the second color is
+    // the AlterU brand pink (cochineal-ish dusty rose, hex #f5b1c7) instead
+    // of the conventional cinnabar — keeps the folk-art language while
+    // carrying the platform color thread.
+    `Two-color woodblock print: deep ink black and soft dusty rose pink (cochineal, #f5b1c7) on cream paper. No red, no orange — the second color must be a soft warm pink.`,
     // Composition: circular tondo. The subject must curl/coil/arrange to
     // fill a perfect circle — the final image is masked to a circle in-app,
     // so anything pushed to the corners is lost.

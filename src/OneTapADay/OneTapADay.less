@@ -674,11 +674,12 @@
     color: @pink;
     text-shadow: 0 0 12px @pink-ghost;
   }
-  // Revealed totem — circular, with the same soft pink halo as the loading
-  // ring so loading→reveal feels continuous (one disc casting another).
+  // Revealed totem — circular, same 240px diameter as the loading disc so
+  // the loading → reveal transition feels like one continuous disc that
+  // simply finished being cast. Same soft pink halo.
   &__image {
-    width: 78%;
-    aspect-ratio: 1;
+    width: 240px;
+    height: 240px;
     overflow: hidden;
     background: @bg-2;
     border-radius: 50%;
