@@ -413,7 +413,11 @@ export function useDailyTap() {
      * record/play, swap in the real value. */
     totemSummonedAt: undefined as string | undefined,
     totemHistory: local.totemHistory,
-    orbitUsers,
+    // The player's own slot joins the orbit only after they've tapped
+    // today — that way the post-tap moment carries a visible "you've
+    // entered the ring" animation. Pre-tap the orbit only shows other
+    // recent tappers.
+    orbitUsers: tappedToday ? orbitUsers : orbitUsers.filter(u => !u.isSelf),
   };
 
   // ---------- Demo-mode override ----------

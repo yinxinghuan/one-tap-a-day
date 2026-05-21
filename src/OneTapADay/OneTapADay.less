@@ -286,31 +286,41 @@
     object-fit: cover;
     display: block;
   }
-  // Self-avatar entrance — the player's own slot eases in from a slight
-  // pull-back state (smaller + dim) the first time it appears, signaling
-  // "you've joined the ring". Plays whenever the avatar mounts; since the
-  // self-avatar is only added to the orbit array after the player taps
-  // (or on entry once we've fetched their info), this lands at the right
-  // moment.
+  // Self-avatar entrance — joins orbit only after the player taps.
+  // Uses CSS individual `scale` (not `transform: scale`) so the inline
+  // positioning transform stays intact; avatar grows at its proper
+  // ring slot rather than getting yanked to viewport center.
+  // A short ring-shaped box-shadow ripple expands once during the
+  // entrance, then fades to the normal pink ring.
   &--self {
-    animation: otd-orbit-self-enter 1.1s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+    animation: otd-orbit-self-enter 0.9s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+    z-index: 4;
   }
 }
 
 @keyframes otd-orbit-self-enter {
   0% {
+    scale: 0;
     opacity: 0;
-    transform: scale(0.4);
-    filter: brightness(2) saturate(0.4);
+    box-shadow:
+      0 0 0 0 @pink,
+      0 0 0 0 rgba(245, 177, 199, 0.6);
   }
-  60% {
+  55% {
+    scale: 1.12;
     opacity: 1;
-    filter: brightness(1.2) saturate(1.1);
+    box-shadow:
+      0 0 18px @pink,
+      0 0 0 2px @pink,
+      0 0 0 10px rgba(245, 177, 199, 0.15);
   }
   100% {
+    scale: 1;
     opacity: 1;
-    transform: scale(1);
-    filter: brightness(1) saturate(1);
+    box-shadow:
+      0 0 16px @pink-dim,
+      0 2px 6px rgba(0,0,0,0.55),
+      0 0 0 1px @pink;
   }
 }
 
