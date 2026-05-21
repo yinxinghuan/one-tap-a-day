@@ -7,6 +7,7 @@ import { Countdown } from './components/Countdown';
 import { Onboarding } from './components/Onboarding';
 import { TotemReveal } from './components/TotemReveal';
 import { Tombstone } from './components/Tombstone';
+import { Archive } from './components/Archive';
 import { prettyDate } from './utils/day';
 import { startAmbient, playTap } from './utils/audio';
 import { t } from './i18n';
@@ -21,12 +22,16 @@ export default function OneTapADay() {
     seenOnboarding,
     markOnboarded,
     longestStreak,
-    streakBroken,
+    showTombstone,
+    acknowledgeTombstone,
     todayTotem,
     totemSummoning,
+    totemHistory,
+    orbitUsers,
   } = useDailyTap();
 
   const [showTotem, setShowTotem] = useState(false);
+  const [showArchive, setShowArchive] = useState(false);
   const audioReadyRef = useState({ ready: false })[0];
 
   const ensureAudio = useCallback(() => {
@@ -53,17 +58,16 @@ export default function OneTapADay() {
     markOnboarded();
   }, [ensureAudio, markOnboarded]);
 
+  const handleTombDismiss = useCallback(() => {
+    ensureAudio();
+    acknowledgeTombstone();
+  }, [ensureAudio, acknowledgeTombstone]);
+
   const stageClass = `otd-stage${tappedToday ? ' otd-stage--tapped' : ''}`;
 
   return (
     <div className={stageClass} onPointerDown={ensureAudio}>
       <div className="otd-bg" />
-      {/*
-        Background Turing-pattern relief — two layers offset by 1px each
-        direction (highlight + shadow) so a flat mask reads as bas-relief.
-        Masked behind a radial gradient so the pattern only shows in the
-        central light pool around the altar.
-      */}
       <div className="otd-relief otd-relief--bg" aria-hidden>
         <div className="otd-relief__highlight" />
         <div className="otd-relief__shadow" />
@@ -77,14 +81,9 @@ export default function OneTapADay() {
       </header>
 
       <main className="otd-main">
-        {streakBroken && <Tombstone bestStreak={longestStreak} />}
-
         <div className="otd-stage__center">
-          {/* Wave halo — pink light pulse expanding outward in sync with the
-              tap button's breathing. Placed inside .otd-stage__center so its
-              radial center is exactly the button's center (concentric). */}
           <div className="otd-halo" aria-hidden />
-          <Orbit count={stats.day_user_count} selfTapped={tappedToday} />
+          <Orbit avatars={orbitUsers} count={stats.day_user_count} />
           <TapButton tapped={tappedToday} onTap={handleTap} />
         </div>
 
@@ -112,17 +111,36 @@ export default function OneTapADay() {
       </main>
 
       <footer className="otd-foot">
+        <button
+          type="button"
+          className="otd-foot__archive"
+          onPointerDown={() => setShowArchive(true)}
+        >
+          {t('archive_link')}
+        </button>
         <img src="/one-tap-a-day/alteru.svg" alt="alteru" className="otd-foot__mark" />
       </footer>
 
       {!seenOnboarding && <Onboarding onDismiss={handleOnboardDismiss} />}
+
+      {showTombstone && (
+        <Tombstone bestStreak={longestStreak} onContinue={handleTombDismiss} />
+      )}
 
       {showTotem && (
         <TotemReveal
           totem={todayTotem}
           summoning={totemSummoning && !todayTotem}
           onClose={() => setShowTotem(false)}
+          onArchive={() => {
+            setShowTotem(false);
+            setShowArchive(true);
+          }}
         />
+      )}
+
+      {showArchive && (
+        <Archive totems={totemHistory} onClose={() => setShowArchive(false)} />
       )}
     </div>
   );

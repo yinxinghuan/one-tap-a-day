@@ -42,10 +42,15 @@ const en: Dict = {
   totem_close: 'Close',
   next_tap: 'Next tap in {hh}h {mm}m',
   streak_broken_title: 'Yesterday slipped by.',
+  streak_broken_lead: 'You missed the bell.',
   streak_broken_sub: 'Start again?',
+  streak_broken_cta: 'Begin again',
   tombstone: 'longest streak — {n} days',
-  archive_title: 'TOTEM ARCHIVE',
-  archive_empty: 'no totems yet.',
+  archive_title: 'Totem Archive',
+  archive_subtitle: 'Days you were there.',
+  archive_link: 'Archive',
+  archive_empty: "You haven't met a totem yet.",
+  back: 'Back',
 };
 
 const zh: Dict = {
@@ -67,10 +72,15 @@ const zh: Dict = {
   totem_close: '关闭',
   next_tap: '下次还能点：{hh} 小时 {mm} 分钟后',
   streak_broken_title: '昨天溜走了。',
-  streak_broken_sub: '重新开始？',
+  streak_broken_lead: '你错过了那一下。',
+  streak_broken_sub: '从头来过？',
+  streak_broken_cta: '重新开始',
   tombstone: '最长连续 — {n} 天',
   archive_title: '图腾档案',
-  archive_empty: '还没有图腾。',
+  archive_subtitle: '你来过的那些日子。',
+  archive_link: '档案',
+  archive_empty: '还没遇见过图腾。',
+  back: '返回',
 };
 
 const es: Dict = {
@@ -223,8 +233,109 @@ const fr: Dict = {
   archive_empty: 'pas encore de totem.',
 };
 
+// For the other 6 locales, fall back to English copy for the new keys until
+// I add full translations. Existing keys stay localized.
+[es, pt, ru, ja, ko, fr].forEach(d => {
+  if (!d.streak_broken_lead) d.streak_broken_lead = en.streak_broken_lead;
+  if (!d.streak_broken_cta)  d.streak_broken_cta  = en.streak_broken_cta;
+  if (!d.archive_title)      d.archive_title      = en.archive_title;
+  if (!d.archive_subtitle)   d.archive_subtitle   = en.archive_subtitle;
+  if (!d.archive_link)       d.archive_link       = en.archive_link;
+  if (!d.archive_empty)      d.archive_empty      = en.archive_empty;
+  if (!d.back)               d.back               = en.back;
+});
+
+// Mystical lines rotated under the spinner while the AI is generating the
+// totem image. ~5s per line, fade in/out. Each locale has 8 lines; cycle.
+const poetry: Record<Locale, string[]> = {
+  en: [
+    'the kettle remembers your hand',
+    "a small bell is being cast",
+    'the river is choosing its color',
+    'the moth that forgot where it was going',
+    'a feather is deciding how to fall',
+    'the smoke is finding its shape',
+    "today's stone has not landed yet",
+    'the candle has not picked its flame',
+  ],
+  zh: [
+    '茶壶记得你的手',
+    '一只小钟正在被铸成',
+    '河流在挑自己的颜色',
+    '一只忘了去处的飞蛾',
+    '羽毛在决定怎么落下',
+    '烟在找它的形状',
+    '今天的那块石头还没落地',
+    '蜡烛还没认领它的火焰',
+  ],
+  es: [
+    'la tetera recuerda tu mano',
+    'se está fundiendo una pequeña campana',
+    'el río está eligiendo su color',
+    'una polilla que olvidó hacia dónde iba',
+    'una pluma decide cómo caer',
+    'el humo está encontrando su forma',
+    'la piedra de hoy aún no ha caído',
+    'la vela aún no ha elegido su llama',
+  ],
+  pt: [
+    'a chaleira lembra de sua mão',
+    'um pequeno sino está sendo fundido',
+    'o rio está escolhendo sua cor',
+    'uma mariposa que esqueceu para onde ia',
+    'uma pena decide como cair',
+    'a fumaça está encontrando sua forma',
+    'a pedra de hoje ainda não caiu',
+    'a vela ainda não escolheu sua chama',
+  ],
+  ru: [
+    'чайник помнит твою руку',
+    'льётся маленький колокол',
+    'река выбирает свой цвет',
+    'мотылёк, забывший куда летел',
+    'перо решает, как падать',
+    'дым ищет свою форму',
+    'сегодняшний камень ещё не упал',
+    'свеча ещё не выбрала пламя',
+  ],
+  ja: [
+    '湯沸かしは君の手を覚えている',
+    '小さな鐘が鋳られている',
+    '川が色を選んでいる',
+    'どこへ向かうのか忘れた蛾',
+    '羽根が落ち方を決めている',
+    '煙が形を探している',
+    '今日の石はまだ落ちていない',
+    '蝋燭はまだ炎を選んでいない',
+  ],
+  ko: [
+    '주전자가 너의 손을 기억한다',
+    '작은 종이 주조되고 있다',
+    '강이 자기 색을 고르고 있다',
+    '어디로 가는지 잊은 나방',
+    '깃털이 어떻게 떨어질지 정한다',
+    '연기가 모양을 찾고 있다',
+    "오늘의 돌은 아직 떨어지지 않았다",
+    '촛불은 아직 불꽃을 고르지 않았다',
+  ],
+  fr: [
+    'la bouilloire se souvient de ta main',
+    'on coule une petite cloche',
+    'la rivière choisit sa couleur',
+    'un papillon de nuit qui a oublié où il allait',
+    "une plume décide comment tomber",
+    'la fumée cherche sa forme',
+    "la pierre d'aujourd'hui n'est pas encore tombée",
+    "la bougie n'a pas encore choisi sa flamme",
+  ],
+};
+
 const dict: Record<Locale, Dict> = { en, zh, es, pt, ru, ja, ko, fr };
 const locale: Locale = detectLocale();
+
+export function poetryLines(): string[] {
+  return poetry[locale] || poetry.en;
+}
 
 export function t(key: string, vars?: Record<string, string | number>): string {
   let s: string = dict[locale][key] || dict.en[key] || key;
