@@ -1,74 +1,107 @@
-// Orbit of avatars circling the tap altar. Each represents another player
-// who tapped today. Avatars come from the platform's get/data/list (last 6
-// users with saves for this session); in demo mode they're populated with
-// mock data.
+// Orbit ring around the tap altar.
 //
-// If fewer than `count` avatars are known, the remaining ring slots fill
-// with ochre glyph dots (the original decorative fallback) so the ring
-// still scales with the total day_user_count.
+// Layout: a single perfectly-circular ring at radius R. Every "tapper today"
+// gets one slot, evenly distributed by angle. Known users render as an
+// avatar circle with the user's name written radially outside; the rest
+// fall back to small ochre glyph dots. As the day's count grows the ring
+// gets denser and slots naturally start to overlap.
+//
+// Avatar slot positions are spread evenly across the ring rather than
+// clustered at the start, so the ~6 known faces are visible "around" the
+// circle of community rather than all on one side.
 
 import { useMemo } from 'react';
 
 export interface OrbitAvatar {
   id: string;
-  url?: string;          // image url; falls back to initial + colored bg
+  name?: string;
+  url?: string;
   initial?: string;
   isSelf?: boolean;
 }
 
 interface Props {
-  avatars: OrbitAvatar[];   // known users (max ~6)
-  count: number;            // total tapped today (drives extra fallback dots)
+  avatars: OrbitAvatar[];
+  count: number;
 }
 
-const MAX_DOTS = 22;
+const MAX_SLOTS = 60;     // hard cap — beyond this, the ring is just dense regardless
+const RING_RADIUS = 152;  // px from center
+const NAME_RADIUS = 178;  // px from center (slightly outside avatar)
+
+interface Slot {
+  i: number;
+  angle: number;          // radians (0 = right, -PI/2 = top)
+  avatar?: OrbitAvatar;
+}
 
 export function Orbit({ avatars, count }: Props) {
-  const items = useMemo(() => {
-    const total = Math.min(Math.max(avatars.length, count), MAX_DOTS);
-    const known = avatars.slice(0, total);
-    const arr: Array<{
-      i: number;
-      angle: number;
-      r: number;
-      delay: number;
-      avatar?: OrbitAvatar;
-    }> = [];
+  const slots = useMemo<Slot[]>(() => {
+    const total = Math.max(avatars.length, Math.min(count, MAX_SLOTS));
+    if (total === 0) return [];
+    const known = avatars.slice(0, Math.min(avatars.length, total));
+    const k = known.length;
+
+    // Spread known avatars evenly across the ring.
+    // E.g. total=47, k=6 → avatars at slot indices 0, 7, 14, 21, 28, 35.
+    const step = k > 0 ? Math.floor(total / k) : 0;
+    const out: Slot[] = [];
     for (let i = 0; i < total; i++) {
-      const seed = (i * 9301 + 49297) % 233280;
-      const rand = seed / 233280;
-      const angle = (i * 360) / total + rand * 14;
-      const r = 138 + rand * 32;
-      const delay = rand * 6;
-      arr.push({
+      const angle = (i / total) * Math.PI * 2 - Math.PI / 2; // start at top
+      const avatarIdx = step > 0 && i % step === 0 && i / step < k
+        ? Math.floor(i / step)
+        : -1;
+      out.push({
         i,
         angle,
-        r,
-        delay,
-        avatar: known[i],
+        avatar: avatarIdx >= 0 ? known[avatarIdx] : undefined,
       });
     }
-    return arr;
+    return out;
   }, [avatars, count]);
 
   return (
     <div className="otd-orbit">
-      {items.map(d => (
-        <span
-          key={d.i}
-          className={`otd-orbit__slot${d.avatar?.isSelf ? ' otd-orbit__slot--self' : ''}${d.avatar ? ' otd-orbit__slot--avatar' : ' otd-orbit__slot--dot'}`}
-          style={{
-            transform: `rotate(${d.angle}deg) translateY(-${d.r}px) rotate(${-d.angle}deg)`,
-            animationDelay: `${d.delay}s`,
-          }}
-        >
-          {d.avatar?.url ? (
-            <img src={d.avatar.url} alt="" draggable={false} />
-          ) : d.avatar?.initial ? (
-            <span className="otd-orbit__initial">{d.avatar.initial}</span>
-          ) : null}
-        </span>
-      ))}
+      {slots.map(s => {
+        const x = Math.cos(s.angle) * RING_RADIUS;
+        const y = Math.sin(s.angle) * RING_RADIUS;
+        const nameX = Math.cos(s.angle) * NAME_RADIUS;
+        const nameY = Math.sin(s.angle) * NAME_RADIUS;
+
+        if (s.avatar) {
+          const av = s.avatar;
+          return (
+            <div key={s.i}>
+              <span
+                className={`otd-orbit__avatar${av.isSelf ? ' otd-orbit__avatar--self' : ''}`}
+                style={{ transform: `translate(${x}px, ${y}px) translate(-50%, -50%)` }}
+              >
+                {av.url ? (
+                  <img src={av.url} alt="" draggable={false} />
+                ) : (
+                  <span className="otd-orbit__initial">{av.initial}</span>
+                )}
+              </span>
+              {av.name && (
+                <span
+                  className={`otd-orbit__name${av.isSelf ? ' otd-orbit__name--self' : ''}`}
+                  style={{ transform: `translate(${nameX}px, ${nameY}px) translate(-50%, -50%)` }}
+                >
+                  {av.name}
+                </span>
+              )}
+            </div>
+          );
+        }
+
+        return (
+          <span
+            key={s.i}
+            className="otd-orbit__dot"
+            style={{ transform: `translate(${x}px, ${y}px) translate(-50%, -50%)` }}
+          />
+        );
+      })}
     </div>
   );
 }

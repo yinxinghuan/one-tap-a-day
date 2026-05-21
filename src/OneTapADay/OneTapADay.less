@@ -246,26 +246,26 @@
   justify-content: center;
 }
 
-.otd-orbit__slot {
+// Single ring at radius R. Each slot is positioned via inline transform
+// (radial math in the component); the CSS just styles the visuals.
+//
+// .otd-orbit__avatar  — known user avatar (circular)
+// .otd-orbit__name    — user name written radially outside the avatar
+// .otd-orbit__dot     — filler dot for unknown users
+
+.otd-orbit__avatar {
   position: absolute;
   left: 50%;
   top: 50%;
-  transform-origin: 50% 50%;
-  animation: otd-orbit-pulse 5s ease-in-out infinite;
-}
-
-// Avatar slot — small circular image / initial chip with subtle border.
-.otd-orbit__slot--avatar {
-  width: 22px;
-  height: 22px;
-  margin-left: -11px;
-  margin-top: -11px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   overflow: hidden;
   background: @stone;
   border: 1px solid @stroke-warm;
   box-shadow: 0 2px 6px rgba(0,0,0,0.55), 0 0 10px rgba(196, 161, 101, 0.15);
-  opacity: 0.92;
+  opacity: 0.95;
+  z-index: 2;          // sits above filler dots
   img {
     width: 100%;
     height: 100%;
@@ -274,7 +274,6 @@
   }
 }
 
-// Initial fallback (no avatar url available).
 .otd-orbit__initial {
   display: flex;
   width: 100%;
@@ -282,36 +281,56 @@
   align-items: center;
   justify-content: center;
   font-family: 'Cinzel', serif;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.04em;
   color: @cream;
   background: linear-gradient(135deg, #3b342c 0%, #5a4b3a 100%);
 }
 
-// Self slot — pink ring, brighter.
-.otd-orbit__slot--self.otd-orbit__slot--avatar {
+.otd-orbit__avatar--self {
   border-color: @pink;
-  box-shadow: 0 0 14px @pink-dim, 0 2px 6px rgba(0,0,0,0.55);
+  box-shadow: 0 0 16px @pink-dim, 0 2px 6px rgba(0,0,0,0.55);
   opacity: 1;
-  animation-duration: 2.4s;
   .otd-orbit__initial {
     background: linear-gradient(135deg, #6b3a47 0%, #b2516b 100%);
     color: @cream;
   }
 }
 
-// Fallback dot — for slots with no known user (count > known avatars).
-.otd-orbit__slot--dot {
-  width: 8px;
-  height: 8px;
-  margin-left: -4px;
-  margin-top: -4px;
-  background-color: @ochre;
-  -webkit-mask: @glyph-svg-uri center/contain no-repeat;
-          mask: @glyph-svg-uri center/contain no-repeat;
-  opacity: 0.5;
-  box-shadow: 0 0 8px @ochre-dim;
+.otd-orbit__name {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: @cream-soft;
+  white-space: nowrap;
+  pointer-events: none;
+  text-shadow: 0 0 8px rgba(0,0,0,0.8);
+  z-index: 3;
+  // Subtle fade so names don't shout
+  opacity: 0.85;
+}
+.otd-orbit__name--self {
+  color: @pink;
+  opacity: 1;
+  text-shadow: 0 0 10px rgba(0,0,0,0.7), 0 0 12px @pink-ghost;
+}
+
+.otd-orbit__dot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: @ochre;
+  opacity: 0.55;
+  box-shadow: 0 0 6px @ochre-dim;
+  z-index: 1;
 }
 
 @keyframes otd-orbit-pulse {
