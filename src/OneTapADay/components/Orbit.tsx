@@ -26,8 +26,8 @@ interface Props {
 }
 
 const MAX_SLOTS = 60;     // hard cap — beyond this, the ring is just dense regardless
-const RING_RADIUS = 152;  // px from center
-const NAME_RADIUS = 178;  // px from center (slightly outside avatar)
+const RING_RADIUS = 148;  // px from center to avatar center
+const NAME_RADIUS = 196;  // px from center to NAME center (rotated radially outward)
 
 interface Slot {
   i: number;
@@ -70,6 +70,12 @@ export function Orbit({ avatars, count }: Props) {
 
         if (s.avatar) {
           const av = s.avatar;
+          // Rotate the name so it reads radially from the avatar outward.
+          // For the left half of the ring (cos < 0) we flip an extra 180°
+          // so the text stays right-side-up rather than appearing upside-down.
+          let nameRotDeg = (s.angle * 180) / Math.PI;
+          if (Math.cos(s.angle) < 0) nameRotDeg += 180;
+
           return (
             <div key={s.i}>
               <span
@@ -85,7 +91,10 @@ export function Orbit({ avatars, count }: Props) {
               {av.name && (
                 <span
                   className={`otd-orbit__name${av.isSelf ? ' otd-orbit__name--self' : ''}`}
-                  style={{ transform: `translate(${nameX}px, ${nameY}px) translate(-50%, -50%)` }}
+                  style={{
+                    transform:
+                      `translate(${nameX}px, ${nameY}px) translate(-50%, -50%) rotate(${nameRotDeg}deg)`,
+                  }}
                 >
                   {av.name}
                 </span>
