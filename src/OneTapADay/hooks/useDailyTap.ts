@@ -1,0 +1,327 @@
+// Core game state machine. Owns:
+//   - whether the user has tapped today
+//   - the streak number (+ persisted "longest streak" tombstone)
+//   - the today's-totem object (gen-image + caption when threshold hit)
+//   - lifecycle: refreshing stats on tap, polling save list for totem reveal
+
+import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  useGameEvent,
+  useGameStats,
+  useGenImage,
+  useChat,
+  callAigramAPI,
+  postAigramAPI,
+  telegramId,
+  isInAigram,
+  getGameUuid,
+  type AigramResponse,
+} from '@shared/runtime';
+import { useGameSave } from '@shared/save';
+import { utcDayString } from '../utils/day';
+import { totemPrompt, captionPrompt, TOTEM_CAPTION_SYSTEM } from '../utils/totem';
+
+const EVENT_NAME = 'tap';
+export const TOTEM_THRESHOLD = 100;
+
+// Demo / preview mode — when the game is opened outside Aigram (e.g. on the
+// GitHub Pages preview URL) with a `?demo=<state>` query param, the hook
+// returns mocked values so reviewers can step through every post-tap state
+// without a real platform feed:
+//   ?demo=tap        fresh tap state (default if no value)
+//   ?demo=tapped     already tapped today, mid-streak, countdown showing
+//   ?demo=summoning  totem-summoning spinner modal
+//   ?demo=totem      full totem reveal modal with placeholder image + caption
+//   ?demo=tombstone  streak-broken view with longest-streak tombstone
+type DemoMode = 'tap' | 'tapped' | 'summoning' | 'totem' | 'tombstone';
+function readDemoMode(): DemoMode | null {
+  if (typeof window === 'undefined') return null;
+  const v = new URLSearchParams(window.location.search).get('demo');
+  if (v === 'tap' || v === 'tapped' || v === 'summoning' || v === 'totem' || v === 'tombstone') {
+    return v;
+  }
+  return null;
+}
+
+export interface TodayTotem {
+  date: string;             // YYYY-MM-DD (UTC)
+  imageUrl: string;
+  caption: string;
+  summonedBy: number;       // day_user_count at the moment of generation
+}
+
+export interface LocalState {
+  lastTapDay: string | null;   // last UTC day string we tapped
+  longestStreak: number;       // best continuous_days we've ever seen for this user
+  lastSeenStreak: number;      // last known continuous_days (for tombstone detection)
+  seenOnboarding: boolean;
+}
+
+const DEFAULT_LOCAL: LocalState = {
+  lastTapDay: null,
+  longestStreak: 0,
+  lastSeenStreak: 0,
+  seenOnboarding: false,
+};
+
+interface TotemSaveRow {
+  user_id: string;
+  resource_data: string;
+}
+
+export function useDailyTap() {
+  const today = utcDayString();
+  const sessionId = getGameUuid();
+  const { trigger, canEmit } = useGameEvent();
+  const { stats, refresh } = useGameStats(EVENT_NAME);
+  const { generate } = useGenImage();
+  const { send: chatSend } = useChat({ system: TOTEM_CAPTION_SYSTEM, maxHistory: 0 });
+  const { savedData, persist } = useGameSave<LocalState>('one-tap-a-day');
+
+  const [local, setLocal] = useState<LocalState>(DEFAULT_LOCAL);
+  const [todayTotem, setTodayTotem] = useState<TodayTotem | null>(null);
+  const [totemSummoning, setTotemSummoning] = useState(false);
+  const [justTapped, setJustTapped] = useState(false);
+
+  const generationStartedRef = useRef(false);
+
+  // Initial local load
+  useEffect(() => {
+    if (savedData === undefined) return;        // still loading
+    setLocal(savedData ?? DEFAULT_LOCAL);
+  }, [savedData]);
+
+  // Mirror "longest streak" tombstone + detect streak break
+  useEffect(() => {
+    if (!stats) return;
+    setLocal(prev => {
+      const longest = Math.max(prev.longestStreak, stats.continuous_days);
+      // Streak break: previous lastSeenStreak >= 2 AND the platform now shows
+      // continuous_days === 0 (or strictly less than lastSeenStreak by >= 2,
+      // meaning we missed at least one day).
+      const broken = prev.lastSeenStreak >= 1 && stats.continuous_days === 0;
+      const next: LocalState = {
+        ...prev,
+        longestStreak: longest,
+        lastSeenStreak: stats.continuous_days,
+      };
+      if (broken || JSON.stringify(next) !== JSON.stringify(prev)) {
+        persist(next);
+      }
+      return next;
+    });
+  }, [stats, persist]);
+
+  // Has the user tapped today? Two truthy signals — either is enough:
+  //   1. localStorage day marker matches today (we just tapped this session)
+  //   2. continuous_days >= 1 AND lastTapDay === today (we previously tapped)
+  // The first one handles the post-tap state before refresh returns; the
+  // second survives reload.
+  const tappedToday = local.lastTapDay === today;
+
+  // Fetch today's totem from save list (any user's save for today wins —
+  // there's only one "today's totem" globally).
+  const fetchTodayTotem = useCallback(async (): Promise<TodayTotem | null> => {
+    if (!isInAigram || !sessionId) return null;
+    try {
+      const res = await callAigramAPI<AigramResponse<TotemSaveRow[]>>(
+        `/note/aigram/ai/game/get/data/list?session_id=${encodeURIComponent(sessionId)}`,
+        'GET',
+      );
+      const rows = Array.isArray(res?.data) ? res.data : [];
+      for (const row of rows) {
+        if (!row.resource_data) continue;
+        try {
+          const parsed = JSON.parse(row.resource_data);
+          // Match either of two save shapes — local user state or totem record.
+          if (parsed && parsed.date === today && parsed.imageUrl && parsed.caption) {
+            return parsed as TodayTotem;
+          }
+          // Some users' saves may carry .totem field
+          if (parsed && parsed.totem && parsed.totem.date === today) {
+            return parsed.totem as TodayTotem;
+          }
+        } catch { /* skip corrupt */ }
+      }
+    } catch { /* network */ }
+    return null;
+  }, [sessionId, today]);
+
+  // Write the totem out to save list so others can read it.
+  const writeTotem = useCallback((totem: TodayTotem) => {
+    if (!isInAigram || !sessionId || !telegramId) return;
+    postAigramAPI('/note/aigram/ai/game/save/data', {
+      session_id: sessionId,
+      resource_data: JSON.stringify(totem),
+    });
+  }, [sessionId]);
+
+  // Threshold watcher — when day_user_count crosses TOTEM_THRESHOLD and we
+  // have no totem yet, the first browser to notice kicks off generation.
+  useEffect(() => {
+    if (!stats) return;
+    if (todayTotem) return;
+    if (stats.day_user_count < TOTEM_THRESHOLD) return;
+    if (generationStartedRef.current) return;
+
+    let cancelled = false;
+    generationStartedRef.current = true;
+
+    (async () => {
+      // Re-fetch first — maybe someone else already generated.
+      const existing = await fetchTodayTotem();
+      if (cancelled) return;
+      if (existing) {
+        setTodayTotem(existing);
+        return;
+      }
+
+      setTotemSummoning(true);
+      try {
+        const [imageUrl, caption] = await Promise.all([
+          generate({ prompt: totemPrompt(today) }),
+          chatSend(captionPrompt(today)).catch(() => 'an ordinary day, somehow held'),
+        ]);
+        if (cancelled) return;
+        const totem: TodayTotem = {
+          date: today,
+          imageUrl,
+          caption: (caption || '').trim().toLowerCase().replace(/[.!?]+$/, ''),
+          summonedBy: stats.day_user_count,
+        };
+        setTodayTotem(totem);
+        writeTotem(totem);
+      } catch {
+        // Generation failed — clear the "started" flag so a refresh can retry.
+        generationStartedRef.current = false;
+      } finally {
+        if (!cancelled) setTotemSummoning(false);
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [stats, todayTotem, today, generate, chatSend, fetchTodayTotem, writeTotem]);
+
+  // Look for an already-existing totem on mount / day change.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const existing = await fetchTodayTotem();
+      if (!cancelled && existing) setTodayTotem(existing);
+    })();
+    return () => { cancelled = true; };
+  }, [fetchTodayTotem]);
+
+  // The single act: trigger event, mark locally, refresh stats.
+  const tap = useCallback(() => {
+    if (tappedToday) return;
+    if (!canEmit) {
+      // Out-of-Aigram preview: still progress the local UI for testing.
+      setLocal(prev => {
+        const next = { ...prev, lastTapDay: today };
+        persist(next);
+        return next;
+      });
+      setJustTapped(true);
+      return;
+    }
+    trigger(EVENT_NAME);
+    setLocal(prev => {
+      const next = { ...prev, lastTapDay: today };
+      persist(next);
+      return next;
+    });
+    setJustTapped(true);
+    // Small delay so platform finishes recording before we read.
+    setTimeout(() => { void refresh(); }, 600);
+    setTimeout(() => { void refresh(); }, 2200);
+  }, [tappedToday, canEmit, trigger, today, persist, refresh]);
+
+  const markOnboarded = useCallback(() => {
+    setLocal(prev => {
+      if (prev.seenOnboarding) return prev;
+      const next = { ...prev, seenOnboarding: true };
+      persist(next);
+      return next;
+    });
+  }, [persist]);
+
+  const baseReturn = {
+    today,
+    tappedToday,
+    tap,
+    justTapped,
+    stats,
+    canEmit,
+    isInAigram,
+    seenOnboarding: local.seenOnboarding,
+    markOnboarded,
+    longestStreak: local.longestStreak,
+    streakBroken:
+      // Show tombstone screen when we have a record of a streak but the
+      // platform now reports 0 AND we haven't tapped today yet.
+      local.longestStreak >= 1 && stats.continuous_days === 0 && !tappedToday,
+    todayTotem,
+    totemSummoning,
+  };
+
+  // ---------- Demo-mode override ----------
+  const demoMode = readDemoMode();
+  if (!demoMode) return baseReturn;
+
+  const demoStats = {
+    day_click_count: 0,
+    total_click_count: 0,
+    total_user_count: 0,
+    day_user_count: 0,
+    continuous_days: 0,
+  };
+  const demoTotem: TodayTotem = {
+    date: today,
+    imageUrl: '/one-tap-a-day/demo-totem.png',
+    caption: 'the small bell no one rang today',
+    summonedBy: 142,
+  };
+
+  switch (demoMode) {
+    case 'tap':
+      return {
+        ...baseReturn,
+        seenOnboarding: true,
+        tappedToday: false,
+        stats: { ...demoStats, day_user_count: 23, total_user_count: 1840 },
+      };
+    case 'tapped':
+      return {
+        ...baseReturn,
+        seenOnboarding: true,
+        tappedToday: true,
+        stats: { ...demoStats, day_user_count: 47, continuous_days: 7, total_user_count: 1840 },
+      };
+    case 'summoning':
+      return {
+        ...baseReturn,
+        seenOnboarding: true,
+        tappedToday: true,
+        stats: { ...demoStats, day_user_count: 100, continuous_days: 12, total_user_count: 2370 },
+        totemSummoning: true,
+      };
+    case 'totem':
+      return {
+        ...baseReturn,
+        seenOnboarding: true,
+        tappedToday: true,
+        stats: { ...demoStats, day_user_count: 142, continuous_days: 12, total_user_count: 2370 },
+        todayTotem: demoTotem,
+      };
+    case 'tombstone':
+      return {
+        ...baseReturn,
+        seenOnboarding: true,
+        tappedToday: false,
+        longestStreak: 23,
+        streakBroken: true,
+        stats: { ...demoStats, day_user_count: 12, total_user_count: 2200 },
+      };
+  }
+}
