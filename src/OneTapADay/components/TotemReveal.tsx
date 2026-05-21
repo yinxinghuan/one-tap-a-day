@@ -3,15 +3,20 @@ import { t } from '../i18n';
 import type { TodayTotem } from '../hooks/useDailyTap';
 import { playRevealChord } from '../utils/audio';
 import { SummoningPoetry } from './SummoningPoetry';
+import { durationSinceUtcMidnight } from '../utils/day';
 
 interface Props {
   totem: TodayTotem | null;
   summoning: boolean;
+  /** Number of users that triggered the summoning (day_user_count). */
+  summonCount?: number;
+  /** Timestamp when the threshold was reached (ISO). */
+  summonedAt?: string;
   onClose: () => void;
   onArchive?: () => void;
 }
 
-export function TotemReveal({ totem, summoning, onClose, onArchive }: Props) {
+export function TotemReveal({ totem, summoning, summonCount, summonedAt, onClose, onArchive }: Props) {
   useEffect(() => {
     if (totem) playRevealChord();
   }, [totem]);
@@ -24,9 +29,24 @@ export function TotemReveal({ totem, summoning, onClose, onArchive }: Props) {
     <div className="otd-totem" onPointerDown={onClose}>
       <div className="otd-totem__card" onPointerDown={e => e.stopPropagation()}>
         {isLoading ? (
-          <div className="otd-totem__title otd-totem__title--summoning">
-            {t('totem_summoning_title')}
-          </div>
+          <>
+            {summonCount != null && summonCount > 0 && (
+              <div className="otd-totem__summoning-context">
+                {t('totem_summoning_context', { n: summonCount })}
+              </div>
+            )}
+            {summonedAt && (() => {
+              const { hh, mm, ss } = durationSinceUtcMidnight(summonedAt);
+              return (
+                <div className="otd-totem__summoning-stat">
+                  {t('totem_summoning_reached_in', { hh, mm, ss })}
+                </div>
+              );
+            })()}
+            <div className="otd-totem__title otd-totem__title--summoning">
+              {t('totem_summoning_title')}
+            </div>
+          </>
         ) : (
           <div className="otd-totem__title">{t('totem_title')}</div>
         )}

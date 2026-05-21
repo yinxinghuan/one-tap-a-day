@@ -308,6 +308,12 @@ export function useDailyTap() {
     acknowledgeTombstone,
     todayTotem,
     totemSummoning,
+    /** ISO timestamp captured the moment the platform crossed the totem
+     * threshold — passed to the summoning screen so it can report "how
+     * long into the day it was reached". For now we set it on the
+     * frontend when summoning starts; once the platform exposes it on
+     * record/play, swap in the real value. */
+    totemSummonedAt: undefined as string | undefined,
     totemHistory: local.totemHistory,
     orbitUsers,
   };
@@ -410,6 +416,8 @@ export function useDailyTap() {
         totemHistory: demoHistory,
         stats: { ...demoStats, day_user_count: 100, continuous_days: 12, total_user_count: 2370 },
         totemSummoning: true,
+        // Mock: threshold reached 9h 32m 14s into today (UTC).
+        totemSummonedAt: `${today}T09:32:14Z`,
       };
     case 'totem':
       return {

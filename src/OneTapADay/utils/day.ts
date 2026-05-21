@@ -33,3 +33,20 @@ export function prettyDate(d: Date = new Date()): string {
     timeZone: 'UTC',
   });
 }
+
+/**
+ * Hours + minutes elapsed from the UTC midnight that began the day of `ts`.
+ * Used to show "the threshold was reached N hours into the day" on the
+ * summoning screen.
+ */
+export function durationSinceUtcMidnight(ts: string | number | Date): { hh: number; mm: number; ss: number } {
+  const t = new Date(ts);
+  const dayStart = Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), t.getUTCDate());
+  const ms = t.getTime() - dayStart;
+  const total = Math.max(0, Math.floor(ms / 1000));
+  return {
+    hh: Math.floor(total / 3600),
+    mm: Math.floor((total % 3600) / 60),
+    ss: total % 60,
+  };
+}

@@ -627,17 +627,15 @@
     color: @pink;
     border: 1px solid @pink;
     padding: 11px 36px;
-    border-radius: 0;
-    clip-path: polygon(
-      6% 0%, 94% 0%, 94% 25%, 100% 25%, 100% 75%, 94% 75%,
-      94% 100%, 6% 100%, 6% 75%, 0% 75%, 0% 25%, 6% 25%
-    );
+    border-radius: 999px;
     font-family: 'Cinzel', serif;
     font-size: 12px;
     font-weight: 600;
     letter-spacing: 0.36em;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
+    transition: background 0.2s ease;
+    &:hover, &:active { background: @pink-ghost; }
   }
 }
 
@@ -676,22 +674,24 @@
     color: @pink;
     text-shadow: 0 0 12px @pink-ghost;
   }
+  // Revealed totem — circular, with the same soft pink halo as the loading
+  // ring so loading→reveal feels continuous (one disc casting another).
   &__image {
-    width: 100%;
+    width: 78%;
     aspect-ratio: 1;
     overflow: hidden;
     background: @bg-2;
-    // Stepped frame
-    clip-path: polygon(
-      6% 0%, 94% 0%, 94% 4%, 100% 4%, 100% 96%, 94% 96%,
-      94% 100%, 6% 100%, 6% 96%, 0% 96%, 0% 4%, 6% 4%
-    );
-    box-shadow: 0 18px 48px rgba(0,0,0,0.7);
+    border-radius: 50%;
+    box-shadow:
+      0 18px 48px rgba(0,0,0,0.7),
+      0 0 36px rgba(245, 177, 199, 0.18),
+      0 0 0 1px @stroke-warm;
     animation: otd-totem-rise 0.9s ease-out;
     img {
       width: 100%;
       height: 100%;
       object-fit: cover;
+      display: block;
     }
   }
   &__caption {
@@ -713,21 +713,18 @@
     font-weight: 500;
   }
   &__close {
-    margin-top: 12px;
     background: transparent;
     color: @cream-dim;
     border: 1px solid @stroke-warm;
-    padding: 9px 28px;
-    border-radius: 0;
-    clip-path: polygon(
-      8% 0%, 92% 0%, 92% 25%, 100% 25%, 100% 75%, 92% 75%,
-      92% 100%, 8% 100%, 8% 75%, 0% 75%, 0% 25%, 8% 25%
-    );
+    padding: 9px 24px;
+    border-radius: 999px;
     font-family: 'Cinzel', serif;
     font-size: 11px;
     font-weight: 600;
     letter-spacing: 0.32em;
     cursor: pointer;
+    transition: color 0.2s ease, border-color 0.2s ease;
+    &:hover, &:active { color: @pink; border-color: @pink-dim; }
   }
   // Title variant during the summoning phase — softer, lowercase italic,
   // no aggressive uppercase tracking. Conveys "in progress" rather than
@@ -737,6 +734,28 @@
     font-style: italic;
     letter-spacing: 0.18em;
     color: @cream-soft;
+  }
+
+  // Top of the summoning modal — explains *why* the totem is being cast
+  // (the trigger condition) above the "summoning" title.
+  &__summoning-context {
+    font-family: 'Cinzel', serif;
+    font-style: italic;
+    font-size: 15px;
+    letter-spacing: 0.04em;
+    line-height: 1.4;
+    color: @cream;
+    text-align: center;
+    max-width: 300px;
+  }
+  &__summoning-stat {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    color: @pink;
+    text-transform: uppercase;
+    margin-top: -8px;
+    opacity: 0.9;
   }
 
   &__summoning {
@@ -794,7 +813,8 @@
   &__buttons {
     display: flex;
     gap: 14px;
-    margin-top: 10px;
+    margin-top: 18px;
+    align-items: stretch;     // equal-height pills
   }
   &__archive {
     background: transparent;

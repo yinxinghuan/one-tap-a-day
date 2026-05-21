@@ -37,6 +37,8 @@ const en: Dict = {
   to_totem: '{n} to totem',
   totem_summoning: "Summoning today's totem…",
   totem_summoning_hint: 'this can take a few moments',
+  totem_summoning_context: '{n} of you tapped today — the totem awakens',
+  totem_summoning_reached_in: 'reached in {hh}h {mm}m {ss}s',
   totem_title: "TODAY'S TOTEM",
   totem_summoning_title: 'summoning',
   totem_subtitle: 'summoned by {n} of you',
@@ -69,6 +71,8 @@ const zh: Dict = {
   to_totem: '还差 {n} 人解锁图腾',
   totem_summoning: '正在召唤今日图腾…',
   totem_summoning_hint: '需要几分钟',
+  totem_summoning_context: '今天 {n} 人按下了 — 图腾醒了',
+  totem_summoning_reached_in: '在 {hh}时 {mm}分 {ss}秒 内达成',
   totem_title: '今日图腾',
   totem_summoning_title: '召唤中',
   totem_subtitle: '由 {n} 人共同召唤',
@@ -247,8 +251,10 @@ const fr: Dict = {
   if (!d.archive_link)            d.archive_link            = en.archive_link;
   if (!d.archive_empty)           d.archive_empty           = en.archive_empty;
   if (!d.back)                    d.back                    = en.back;
-  if (!d.totem_summoning_title)   d.totem_summoning_title   = en.totem_summoning_title;
-  if (!d.totem_summoning_hint)    d.totem_summoning_hint    = en.totem_summoning_hint;
+  if (!d.totem_summoning_title)      d.totem_summoning_title      = en.totem_summoning_title;
+  if (!d.totem_summoning_hint)       d.totem_summoning_hint       = en.totem_summoning_hint;
+  if (!d.totem_summoning_context)    d.totem_summoning_context    = en.totem_summoning_context;
+  if (!d.totem_summoning_reached_in) d.totem_summoning_reached_in = en.totem_summoning_reached_in;
 });
 
 // Mystical lines rotated under the spinner while the AI is generating the

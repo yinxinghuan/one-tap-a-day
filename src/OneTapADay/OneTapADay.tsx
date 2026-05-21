@@ -26,6 +26,7 @@ export default function OneTapADay() {
     acknowledgeTombstone,
     todayTotem,
     totemSummoning,
+    totemSummonedAt,
     totemHistory,
     orbitUsers,
   } = useDailyTap();
@@ -131,6 +132,8 @@ export default function OneTapADay() {
         <TotemReveal
           totem={todayTotem}
           summoning={totemSummoning && !todayTotem}
+          summonCount={stats.day_user_count}
+          summonedAt={totemSummonedAt}
           onClose={() => setShowTotem(false)}
           onArchive={() => {
             setShowTotem(false);
