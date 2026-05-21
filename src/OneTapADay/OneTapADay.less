@@ -562,14 +562,14 @@
 
 .otd-foot {
   position: absolute;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 14px);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
   left: 0;
   right: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  padding: 0 28px;
-  gap: 18px;
+  justify-content: center;
+  gap: 10px;
   z-index: 1;
 
   // AlterU mark — quiet brand watermark on the right.

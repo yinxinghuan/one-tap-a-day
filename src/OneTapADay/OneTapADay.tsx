@@ -113,6 +113,7 @@ export default function OneTapADay() {
       </main>
 
       <footer className="otd-foot">
+        <img src="/one-tap-a-day/alteru.svg" alt="alteru" className="otd-foot__mark" />
         <button
           type="button"
           className="otd-foot__archive"
@@ -127,7 +128,6 @@ export default function OneTapADay() {
           </svg>
           <span className="otd-foot__archive-text">{t('archive_link')}</span>
         </button>
-        <img src="/one-tap-a-day/alteru.svg" alt="alteru" className="otd-foot__mark" />
       </footer>
 
       {!seenOnboarding && <Onboarding onDismiss={handleOnboardDismiss} />}
