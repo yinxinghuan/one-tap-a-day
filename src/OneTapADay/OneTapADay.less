@@ -717,7 +717,7 @@
     background: transparent;
     color: @cream-dim;
     border: 1px solid @stroke-warm;
-    padding: 13px 28px;
+    padding: 13px 26px;
     border-radius: 999px;
     font-family: 'Cinzel', serif;
     font-size: 12px;
@@ -813,15 +813,35 @@
   }
   &__buttons {
     display: flex;
-    gap: 14px;
+    gap: 10px;
     margin-top: 18px;
     align-items: stretch;     // equal-height pills
+    flex-wrap: wrap;          // wrap on narrow screens (3 pills + save)
+    justify-content: center;
+  }
+  // Primary action — Save. Pink-filled pill so it reads as "this is the
+  // thing you want to do."
+  &__save {
+    background: @pink;
+    color: @bg;
+    border: 1px solid @pink;
+    padding: 13px 26px;
+    border-radius: 999px;
+    font-family: 'Cinzel', serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.32em;
+    cursor: pointer;
+    transition: filter 0.2s ease, transform 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+    &:hover, &:active { filter: brightness(1.08); }
+    &:disabled { opacity: 0.6; cursor: progress; }
   }
   &__archive {
     background: transparent;
     color: @cream-dim;
     border: 1px solid @stroke-warm;
-    padding: 13px 28px;
+    padding: 13px 26px;
     border-radius: 999px;
     font-family: 'Cinzel', serif;
     font-size: 12px;

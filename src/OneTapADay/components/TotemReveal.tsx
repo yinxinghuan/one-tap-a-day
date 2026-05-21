@@ -1,9 +1,10 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { t } from '../i18n';
 import type { TodayTotem } from '../hooks/useDailyTap';
 import { playRevealChord } from '../utils/audio';
 import { SummoningPoetry } from './SummoningPoetry';
 import { durationSinceUtcMidnight } from '../utils/day';
+import { saveTotem } from '../utils/saveTotem';
 
 interface Props {
   totem: TodayTotem | null;
@@ -17,9 +18,25 @@ interface Props {
 }
 
 export function TotemReveal({ totem, summoning, summonCount, summonedAt, onClose, onArchive }: Props) {
+  const [saving, setSaving] = useState(false);
+
   useEffect(() => {
     if (totem) playRevealChord();
   }, [totem]);
+
+  const handleSave = useCallback(async () => {
+    if (!totem || saving) return;
+    setSaving(true);
+    try {
+      await saveTotem({
+        imageUrl: totem.imageUrl,
+        date: totem.date,
+        caption: totem.caption,
+      });
+    } finally {
+      setSaving(false);
+    }
+  }, [totem, saving]);
 
   if (!totem && !summoning) return null;
 
@@ -73,6 +90,16 @@ export function TotemReveal({ totem, summoning, summonCount, summonedAt, onClose
         )}
 
         <div className="otd-totem__buttons">
+          {totem && (
+            <button
+              type="button"
+              className="otd-totem__save"
+              onPointerDown={handleSave}
+              disabled={saving}
+            >
+              {t('totem_save')}
+            </button>
+          )}
           {onArchive && (
             <button type="button" className="otd-totem__archive" onPointerDown={onArchive}>
               {t('totem_archive')}
