@@ -27,12 +27,22 @@ interface Props {
 
 const MAX_SLOTS = 60;     // hard cap — beyond this, the ring is just dense regardless
 const RING_RADIUS = 148;  // px from center to avatar center
-const NAME_RADIUS = 196;  // px from center to NAME center (rotated radially outward)
+const AVATAR_HALF = 16;   // half the avatar size (so outer edge = RING + AVATAR_HALF)
+const NAME_GAP = 8;       // gap from avatar's outer edge to name's inner edge
+// Anchor for the name's inner edge — kept constant so every name has the
+// same distance from its avatar, regardless of name length.
+const NAME_ANCHOR_R = RING_RADIUS + AVATAR_HALF + NAME_GAP;
 
 interface Slot {
   i: number;
   angle: number;          // radians (0 = right, -PI/2 = top)
   avatar?: OrbitAvatar;
+}
+
+const NAME_MAX_CHARS = 8;
+function truncate(name: string): string {
+  if (name.length <= NAME_MAX_CHARS) return name;
+  return name.slice(0, NAME_MAX_CHARS - 1) + '…';
 }
 
 export function Orbit({ avatars, count }: Props) {
@@ -65,22 +75,31 @@ export function Orbit({ avatars, count }: Props) {
       {slots.map(s => {
         const x = Math.cos(s.angle) * RING_RADIUS;
         const y = Math.sin(s.angle) * RING_RADIUS;
-        const nameX = Math.cos(s.angle) * NAME_RADIUS;
-        const nameY = Math.sin(s.angle) * NAME_RADIUS;
+        // Name anchor is the point at the avatar's outer edge + gap. The
+        // name's transform-origin is set so this point is the *inner* edge
+        // of the text — keeping the gap visually constant.
+        const nameX = Math.cos(s.angle) * NAME_ANCHOR_R;
+        const nameY = Math.sin(s.angle) * NAME_ANCHOR_R;
 
         if (s.avatar) {
           const av = s.avatar;
-          // Rotate the name so it reads radially from the avatar outward.
+          // Both avatar and name rotate together along the radial direction.
           // For the left half of the ring (cos < 0) we flip an extra 180°
-          // so the text stays right-side-up rather than appearing upside-down.
-          let nameRotDeg = (s.angle * 180) / Math.PI;
-          if (Math.cos(s.angle) < 0) nameRotDeg += 180;
+          // so contents stay right-side-up.
+          const flipped = Math.cos(s.angle) < 0;
+          const rotDeg = (s.angle * 180) / Math.PI + (flipped ? 180 : 0);
+          // transform-origin pins the name's *inner edge* to the anchor
+          // point so the avatar-to-name gap stays constant for every slot.
+          const nameOrigin = flipped ? '100% 50%' : '0% 50%';
 
           return (
             <div key={s.i}>
               <span
                 className={`otd-orbit__avatar${av.isSelf ? ' otd-orbit__avatar--self' : ''}`}
-                style={{ transform: `translate(${x}px, ${y}px) translate(-50%, -50%)` }}
+                style={{
+                  transform:
+                    `translate(${x}px, ${y}px) translate(-50%, -50%) rotate(${rotDeg}deg)`,
+                }}
               >
                 {av.url ? (
                   <img src={av.url} alt="" draggable={false} />
@@ -92,11 +111,11 @@ export function Orbit({ avatars, count }: Props) {
                 <span
                   className={`otd-orbit__name${av.isSelf ? ' otd-orbit__name--self' : ''}`}
                   style={{
-                    transform:
-                      `translate(${nameX}px, ${nameY}px) translate(-50%, -50%) rotate(${nameRotDeg}deg)`,
+                    transform: `translate(${nameX}px, ${nameY}px) rotate(${rotDeg}deg)`,
+                    transformOrigin: nameOrigin,
                   }}
                 >
-                  {av.name}
+                  {truncate(av.name)}
                 </span>
               )}
             </div>
