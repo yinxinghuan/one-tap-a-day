@@ -39,6 +39,29 @@ export function prettyDate(d: Date = new Date()): string {
  * Used to show "the threshold was reached N hours into the day" on the
  * summoning screen.
  */
+/** Difference in whole UTC days between two YYYY-MM-DD strings (or
+ *  dates). Positive if `b` is later than `a`. */
+export function daysBetween(a: string, b: string): number {
+  const da = Date.UTC(
+    Number(a.slice(0, 4)),
+    Number(a.slice(5, 7)) - 1,
+    Number(a.slice(8, 10)),
+  );
+  const db = Date.UTC(
+    Number(b.slice(0, 4)),
+    Number(b.slice(5, 7)) - 1,
+    Number(b.slice(8, 10)),
+  );
+  return Math.round((db - da) / 86400000);
+}
+
+/** YYYY-MM-DD → "MAY 18" style. UTC-stable. */
+export function prettyDateShort(d: string): string {
+  const months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  const m = months[Math.max(0, Math.min(11, Number(d.slice(5, 7)) - 1))];
+  return `${m} ${Number(d.slice(8, 10))}`;
+}
+
 export function durationSinceUtcMidnight(ts: string | number | Date): { hh: number; mm: number; ss: number } {
   const t = new Date(ts);
   const dayStart = Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), t.getUTCDate());

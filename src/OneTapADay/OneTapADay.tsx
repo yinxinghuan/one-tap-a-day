@@ -22,6 +22,7 @@ export default function OneTapADay() {
     seenOnboarding,
     markOnboarded,
     longestStreak,
+    lastTapDay,
     showTombstone,
     acknowledgeTombstone,
     todayTotem,
@@ -125,7 +126,11 @@ export default function OneTapADay() {
       {!seenOnboarding && <Onboarding onDismiss={handleOnboardDismiss} />}
 
       {showTombstone && (
-        <Tombstone bestStreak={longestStreak} onContinue={handleTombDismiss} />
+        <Tombstone
+          bestStreak={longestStreak}
+          lastTapDay={lastTapDay}
+          onContinue={handleTombDismiss}
+        />
       )}
 
       {showTotem && (

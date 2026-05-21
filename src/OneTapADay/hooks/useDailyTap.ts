@@ -303,6 +303,7 @@ export function useDailyTap() {
     seenOnboarding: local.seenOnboarding,
     markOnboarded,
     longestStreak: local.longestStreak,
+    lastTapDay: local.lastTapDay,
     streakBroken,
     showTombstone: streakBroken && local.acknowledgedTombFor !== today,
     acknowledgeTombstone,
@@ -429,18 +430,25 @@ export function useDailyTap() {
         stats: { ...demoStats, day_user_count: 142, continuous_days: 12, total_user_count: 2370 },
         todayTotem: demoTotem,
       };
-    case 'tombstone':
+    case 'tombstone': {
+      // Mock: last tap was 3 days ago (silent for 3 days). Compute against
+      // `today` so the demo is stable regardless of when it's viewed.
+      const t = new Date(`${today}T00:00:00Z`);
+      t.setUTCDate(t.getUTCDate() - 3);
+      const lastTap = t.toISOString().slice(0, 10);
       return {
         ...baseReturn,
         seenOnboarding: true,
         tappedToday: false,
         longestStreak: 23,
+        lastTapDay: lastTap,
         streakBroken: true,
         showTombstone: true,
         orbitUsers: demoAvatars,
         totemHistory: demoHistory,
         stats: { ...demoStats, day_user_count: 12, total_user_count: 2200 },
       };
+    }
     case 'crowded':
       return {
         ...baseReturn,

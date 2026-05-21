@@ -47,10 +47,13 @@ const en: Dict = {
   totem_close: 'Close',
   next_tap: 'Next tap in {hh}h {mm}m',
   streak_broken_title: 'Yesterday slipped by.',
-  streak_broken_lead: 'You missed the bell.',
+  streak_broken_lead: 'The bell tolled without you.',
   streak_broken_sub: 'Start again?',
-  streak_broken_cta: 'Begin again',
-  tombstone: 'longest streak — {n} days',
+  streak_broken_cta: 'Light it again',
+  tombstone: '{n} days stood',
+  tombstone_since: '{n} days silent',
+  tombstone_since_one: '1 day silent',
+  tombstone_dates: '{from} — {to}',
   archive_title: 'Totem Archive',
   archive_subtitle: 'Days you were there.',
   archive_link: 'Archive',
@@ -82,10 +85,13 @@ const zh: Dict = {
   totem_close: '关闭',
   next_tap: '下次还能点：{hh} 小时 {mm} 分钟后',
   streak_broken_title: '昨天溜走了。',
-  streak_broken_lead: '你错过了那一下。',
+  streak_broken_lead: '那一下钟响过了 你没在。',
   streak_broken_sub: '从头来过？',
-  streak_broken_cta: '重新开始',
-  tombstone: '最长连续 — {n} 天',
+  streak_broken_cta: '重新点亮',
+  tombstone: '曾连续 {n} 天',
+  tombstone_since: '已沉默 {n} 天',
+  tombstone_since_one: '已沉默 1 天',
+  tombstone_dates: '{from} — {to}',
   archive_title: '图腾档案',
   archive_subtitle: '你来过的那些日子。',
   archive_link: '档案',
@@ -263,6 +269,9 @@ const fr: Dict = {
   if (!d.totem_summoning_hint)       d.totem_summoning_hint       = en.totem_summoning_hint;
   if (!d.totem_summoning_context)    d.totem_summoning_context    = en.totem_summoning_context;
   if (!d.totem_summoning_reached_in) d.totem_summoning_reached_in = en.totem_summoning_reached_in;
+  if (!d.tombstone_since)            d.tombstone_since            = en.tombstone_since;
+  if (!d.tombstone_since_one)        d.tombstone_since_one        = en.tombstone_since_one;
+  if (!d.tombstone_dates)            d.tombstone_dates            = en.tombstone_dates;
 });
 
 // Mystical lines rotated under the spinner while the AI is generating the
