@@ -1,11 +1,12 @@
-// Totem archive wall — past totems the player has been part of. Each cell
-// is a small disc + date + caption. Tap a cell to open the original totem
+// Totem archive wall — the days you were here. Browse past summoned
+// totems as a grid of circular medallions; tap one to open the original
 // reveal modal.
 
 import { useCallback, useState } from 'react';
 import { t } from '../i18n';
 import type { TodayTotem } from '../hooks/useDailyTap';
 import { TotemReveal } from './TotemReveal';
+import { prettyDateShort } from '../utils/day';
 
 interface Props {
   totems: TodayTotem[];
@@ -26,23 +27,31 @@ export function Archive({ totems, onClose }: Props) {
         <div className="otd-archive__head">
           <div className="otd-archive__title">{t('archive_title')}</div>
           <div className="otd-archive__sub">{t('archive_subtitle')}</div>
+          {sorted.length > 0 && (
+            <div className="otd-archive__count">
+              {t('archive_count', { n: sorted.length })}
+            </div>
+          )}
         </div>
 
         {sorted.length === 0 ? (
           <div className="otd-archive__empty">{t('archive_empty')}</div>
         ) : (
           <div className="otd-archive__grid">
-            {sorted.map(totem => (
+            {sorted.map((totem, i) => (
               <button
                 key={totem.date}
                 type="button"
-                className="otd-archive__cell"
+                className={`otd-archive__cell${i === 0 ? ' otd-archive__cell--latest' : ''}`}
                 onPointerDown={() => setOpened(totem)}
               >
                 <span className="otd-archive__cell-img">
                   <img src={totem.imageUrl} alt="" draggable={false} />
                 </span>
                 <span className="otd-archive__cell-date">{prettyDateShort(totem.date)}</span>
+                {totem.caption && (
+                  <span className="otd-archive__cell-caption">"{trimCaption(totem.caption)}"</span>
+                )}
               </button>
             ))}
           </div>
@@ -64,10 +73,8 @@ export function Archive({ totems, onClose }: Props) {
   );
 }
 
-function prettyDateShort(yyyymmdd: string): string {
-  // "2026-05-21" → "MAY 21"
-  const [, mm, dd] = yyyymmdd.split('-');
-  const months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-  const m = months[Math.max(0, Math.min(11, parseInt(mm, 10) - 1))];
-  return `${m} ${parseInt(dd, 10)}`;
+const MAX_CAPTION = 36;
+function trimCaption(s: string): string {
+  if (s.length <= MAX_CAPTION) return s;
+  return s.slice(0, MAX_CAPTION - 1).trimEnd() + '…';
 }

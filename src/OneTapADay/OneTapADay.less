@@ -1109,42 +1109,78 @@
   position: absolute;
   inset: 0;
   z-index: 25;
-  background: rgba(10, 9, 7, 0.97);
+  background:
+    radial-gradient(ellipse at 50% 0%, #14110d 0%, #0a0907 65%),
+    @bg;
   backdrop-filter: blur(12px);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  padding: 60px 22px 40px;
+  padding: 56px 22px 36px;
   overflow-y: auto;
   animation: otd-fade-in 0.5s ease;
 
+  // Cream-tinted Turing patina — same world as the live screen, drained
+  // to a faint memory texture.
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background-color: rgba(243, 237, 225, 0.06);
+    -webkit-mask-image: @turing-uri;
+            mask-image: @turing-uri;
+    -webkit-mask-repeat: repeat;
+            mask-repeat: repeat;
+    -webkit-mask-size: 220px 220px;
+            mask-size: 220px 220px;
+    -webkit-mask-mode: luminance;
+            mask-mode: luminance;
+    mix-blend-mode: screen;
+    opacity: 0.5;
+  }
+
   &__panel {
+    position: relative;
+    z-index: 1;
     width: 100%;
     max-width: 460px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 22px;
+    gap: 24px;
   }
   &__head {
     text-align: center;
-    margin-bottom: 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
   }
   &__title {
     font-family: 'Cinzel', serif;
     font-size: 22px;
     font-weight: 600;
-    letter-spacing: 0.18em;
+    letter-spacing: 0.22em;
     color: @cream;
     text-transform: uppercase;
-    margin-bottom: 6px;
   }
   &__sub {
     font-family: 'Cinzel', serif;
     font-style: italic;
     font-size: 14px;
-    color: @cream-dim;
+    color: @cream-soft;
+  }
+  &__count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.28em;
+    color: @pink;
+    text-transform: uppercase;
+    opacity: 0.85;
+    margin-top: 6px;
   }
   &__empty {
     font-family: 'Cinzel', serif;
@@ -1157,7 +1193,7 @@
   &__grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
+    gap: 22px 14px;
     width: 100%;
   }
   &__cell {
@@ -1171,29 +1207,58 @@
     gap: 8px;
     -webkit-tap-highlight-color: transparent;
     transition: transform 0.2s ease;
-    &:hover, &:active { transform: translateY(-2px); }
+    &:hover, &:active { transform: translateY(-3px); }
   }
+  // Circular totem — matches the reveal modal's mask so archive cells
+  // read as miniature versions of the same artifact.
   &__cell-img {
     width: 100%;
     aspect-ratio: 1;
-    border-radius: 8px;
+    border-radius: 50%;
     overflow: hidden;
     background: @bg-2;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.5), 0 0 0 1px @stroke;
+    box-shadow:
+      0 6px 18px rgba(0,0,0,0.6),
+      0 0 0 1px @stroke,
+      inset 0 0 12px rgba(0,0,0,0.25);
     img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  }
+  // First cell (most recent) gets a faint pink halo — "latest".
+  &__cell--latest {
+    .otd-archive__cell-img {
+      box-shadow:
+        0 8px 22px rgba(0,0,0,0.6),
+        0 0 0 1px @pink-dim,
+        0 0 22px rgba(245, 177, 199, 0.20),
+        inset 0 0 12px rgba(0,0,0,0.25);
+    }
+    .otd-archive__cell-date { color: @pink; }
   }
   &__cell-date {
     font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    color: @cream-soft;
+    margin-top: 2px;
+  }
+  &__cell-caption {
+    font-family: 'Cinzel', serif;
+    font-style: italic;
     font-size: 10px;
-    letter-spacing: 0.16em;
+    line-height: 1.3;
+    letter-spacing: 0.02em;
     color: @cream-dim;
+    text-align: center;
+    padding: 0 4px;
+    max-width: 100%;
+    opacity: 0.75;
   }
   &__close {
-    margin-top: 10px;
+    margin-top: 14px;
     background: transparent;
     color: @cream-dim;
     border: 1px solid @stroke-warm;
-    padding: 13px 28px;
+    padding: 13px 32px;
     border-radius: 999px;
     font-family: 'Cinzel', serif;
     font-size: 12px;
@@ -1201,6 +1266,7 @@
     letter-spacing: 0.32em;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
+    transition: color 0.2s ease, border-color 0.2s ease;
     &:hover, &:active { color: @pink; border-color: @pink-dim; }
   }
 }
