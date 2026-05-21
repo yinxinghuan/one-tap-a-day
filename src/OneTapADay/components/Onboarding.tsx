@@ -7,12 +7,33 @@ interface Props {
 
 export function Onboarding({ onDismiss }: Props) {
   const handle = useCallback(() => onDismiss(), [onDismiss]);
+
   return (
     <div className="otd-onboard" onPointerDown={handle}>
       <div className="otd-onboard__card">
-        <div className="otd-onboard__line otd-onboard__line--1">{t('onboard_line1')}</div>
-        <div className="otd-onboard__line otd-onboard__line--2">{t('onboard_line2')}</div>
-        <button type="button" className="otd-onboard__cta" onPointerDown={handle}>
+        {/* Hero — woodblock totem fades in first as the visual hook. */}
+        <div className="otd-onboard__hero" aria-hidden>
+          <div className="otd-onboard__hero-halo" />
+          <img
+            src="/one-tap-a-day/demo-totem.png"
+            alt=""
+            draggable={false}
+          />
+        </div>
+
+        <div className="otd-onboard__title">{t('onboard_title')}</div>
+        <div className="otd-onboard__line otd-onboard__line--1">
+          {t('onboard_line1')}
+        </div>
+        <div className="otd-onboard__line otd-onboard__line--2">
+          {t('onboard_line2')}
+        </div>
+
+        <button
+          type="button"
+          className="otd-onboard__cta"
+          onPointerDown={handle}
+        >
           {t('onboard_cta')}
         </button>
       </div>

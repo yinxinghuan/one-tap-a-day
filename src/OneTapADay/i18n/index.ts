@@ -24,9 +24,10 @@ function detectLocale(): Locale {
 
 type Dict = Record<string, string>;
 const en: Dict = {
+  onboard_title: 'ONE TAP A DAY',
   onboard_line1: 'Tap once a day.',
   onboard_line2: "That's the whole game.",
-  onboard_cta: 'OK',
+  onboard_cta: 'Begin',
   tap_label: 'TAP',
   tapped: 'TAPPED',
   hint: 'tap once · then wait a day',
@@ -64,9 +65,10 @@ const en: Dict = {
 };
 
 const zh: Dict = {
+  onboard_title: 'ONE TAP A DAY',
   onboard_line1: '每天点一下。',
   onboard_line2: '就这一下。',
-  onboard_cta: '好',
+  onboard_cta: '开始',
   tap_label: '点',
   tapped: '已点',
   hint: '点一下 · 然后等一天',
@@ -278,6 +280,7 @@ const fr: Dict = {
   if (!d.tombstone_dates)            d.tombstone_dates            = en.tombstone_dates;
   if (!d.archive_count)              d.archive_count              = en.archive_count;
   if (!d.archive_hint)               d.archive_hint               = en.archive_hint;
+  if (!d.onboard_title)              d.onboard_title              = en.onboard_title;
 });
 
 // Mystical lines rotated under the spinner while the AI is generating the
