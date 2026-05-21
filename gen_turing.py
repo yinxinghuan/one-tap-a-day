@@ -52,9 +52,20 @@ def save_pattern(B, path, lo=0.05, hi=0.45, gamma=1.0):
     B = (B - lo) / (hi - lo)
     if gamma != 1.0:
         B = np.power(B, gamma)
-    img8 = (B * 255).astype(np.uint8)
-    Image.fromarray(img8).save(path, optimize=True)
-    print(f"  saved {path}  ({img8.shape}, {os.path.getsize(path)//1024} KB)")
+    # Save as RGBA where alpha = brightness, RGB = white. This keeps the
+    # mask mobile-compatible: standard CSS mask-image defaults to alpha
+    # (works everywhere) instead of luminance (iOS/Android buggy → treats
+    # the opaque grayscale PNG as 'fully passing' so the layer's bg color
+    # leaks through as a solid block).
+    a = (B * 255).astype(np.uint8)
+    N = a.shape[0]
+    rgba = np.zeros((N, N, 4), dtype=np.uint8)
+    rgba[..., 0] = 255
+    rgba[..., 1] = 255
+    rgba[..., 2] = 255
+    rgba[..., 3] = a
+    Image.fromarray(rgba, "RGBA").save(path, optimize=True)
+    print(f"  saved {path}  ({rgba.shape}, {os.path.getsize(path)//1024} KB)")
 
 
 def main():

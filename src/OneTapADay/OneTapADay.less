@@ -52,13 +52,15 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  // Uniform-feeling background: the warm-soil tint is gentle and the
-  // pink halo stays soft. NO corner vignette — the Aigram host already
-  // wraps every game in a rounded frame; an additional darker-corners
-  // pass inside the game creates an implied "inner rounded shape" that
-  // visually competes with the host's rounded mask.
+  // Uniform-feeling background — corners aren't darkened (would double up
+  // with Aigram's host rounded mask). Two soft radial gradients radiating
+  // outward from above-center give the scene a gentle warm-to-cool
+  // pulse: a tighter pink halo right behind the altar + a wider warm
+  // soil-tint that fades by ~70%, so the entire screen reads as 'lit
+  // from the altar' without ever crossing into 'dark corners'.
   background:
-    radial-gradient(ellipse 60% 40% at 50% 45%, @pink-ghost 0%, transparent 70%),
+    radial-gradient(circle 280px at 50% 44%, rgba(245, 177, 199, 0.16) 0%, rgba(245, 177, 199, 0.04) 60%, transparent 100%),
+    radial-gradient(ellipse 90% 70% at 50% 44%, rgba(58, 52, 44, 0.65) 0%, rgba(20, 17, 13, 0.25) 60%, transparent 100%),
     @bg-2;
 
   // Faint stone-grain noise — uniform across the whole canvas.
@@ -112,8 +114,8 @@
           mask-size: @turing-tile-bg @turing-tile-bg;
   // PNG mask defaults to alpha; we want the grayscale image's brightness
   // (luminance) to act as the mask — bright pattern = visible, dark = hidden.
-  -webkit-mask-mode: luminance;
-          mask-mode: luminance;
+  // (mask-mode dropped — turing.png is now RGBA w/ alpha=brightness, so
+  // the default alpha mask works on all browsers including iOS)
 }
 .otd-relief__highlight {
   background-color: @pink;
@@ -147,8 +149,8 @@
           mask-repeat: repeat;
   -webkit-mask-size: @turing-tile-bg @turing-tile-bg;
           mask-size: @turing-tile-bg @turing-tile-bg;
-  -webkit-mask-mode: luminance;
-          mask-mode: luminance;
+  // (mask-mode dropped — turing.png is now RGBA w/ alpha=brightness, so
+  // the default alpha mask works on all browsers including iOS)
   background: radial-gradient(
     circle at 50% 50%,
     transparent 0%,
@@ -656,8 +658,7 @@
             mask-repeat: repeat;
     -webkit-mask-size: 200px 200px;
             mask-size: 200px 200px;
-    -webkit-mask-mode: luminance;
-            mask-mode: luminance;
+    // (mask-mode dropped — turing.png alpha now does the work)
     mix-blend-mode: screen;
     opacity: 0.5;
   }
@@ -1078,8 +1079,7 @@
             mask-repeat: repeat;
     -webkit-mask-size: 200px 200px;
             mask-size: 200px 200px;
-    -webkit-mask-mode: luminance;
-            mask-mode: luminance;
+    // (mask-mode dropped — turing.png alpha now does the work)
     mix-blend-mode: screen;
     opacity: 0.55;
     // Fade pattern density toward edges so the texture pools around the
@@ -1274,8 +1274,7 @@
             mask-repeat: repeat;
     -webkit-mask-size: 220px 220px;
             mask-size: 220px 220px;
-    -webkit-mask-mode: luminance;
-            mask-mode: luminance;
+    // (mask-mode dropped — turing.png alpha now does the work)
     mix-blend-mode: screen;
     opacity: 0.5;
   }
