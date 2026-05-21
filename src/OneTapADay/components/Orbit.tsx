@@ -25,7 +25,10 @@ interface Props {
   count: number;
 }
 
-const MAX_SLOTS = 60;     // hard cap — beyond this, the ring is just dense regardless
+// Hard cap — past 50 the ring already looks fully crowded; additional
+// participants are reflected in the count text below the altar instead of
+// being squeezed into more ring slots.
+const MAX_SLOTS = 50;
 const RING_RADIUS = 148;  // px from center to avatar center
 const AVATAR_HALF = 16;   // half the avatar size (so outer edge = RING + AVATAR_HALF)
 const NAME_GAP = 8;       // gap from avatar's outer edge to name's inner edge
@@ -52,9 +55,11 @@ function truncate(name: string): string {
 
 export function Orbit({ avatars, count }: Props) {
   const slots = useMemo<Slot[]>(() => {
-    const total = Math.max(avatars.length, Math.min(count, MAX_SLOTS));
+    // Cap both arms at MAX_SLOTS so the ring never holds more than that
+    // many positions even if `avatars` or `count` go higher.
+    const known = avatars.slice(0, MAX_SLOTS);
+    const total = Math.max(known.length, Math.min(count, MAX_SLOTS));
     if (total === 0) return [];
-    const known = avatars.slice(0, Math.min(avatars.length, total));
     const k = known.length;
 
     // Spread known avatars evenly across the ring.
