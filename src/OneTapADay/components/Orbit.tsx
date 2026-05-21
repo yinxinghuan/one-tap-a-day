@@ -39,10 +39,15 @@ interface Slot {
   avatar?: OrbitAvatar;
 }
 
-const NAME_MAX_CHARS = 8;
+// Display the user's first word at most NAME_MAX_CHARS characters; if it
+// overflows, add an ellipsis. Telegram-style usernames range from short
+// nicknames to full "First Last" strings — the first-word + cap rule keeps
+// the orbit legible without truncating short names.
+const NAME_MAX_CHARS = 10;
 function truncate(name: string): string {
-  if (name.length <= NAME_MAX_CHARS) return name;
-  return name.slice(0, NAME_MAX_CHARS - 1) + '…';
+  const firstWord = name.split(/\s+/)[0] || name;
+  if (firstWord.length <= NAME_MAX_CHARS) return firstWord;
+  return firstWord.slice(0, NAME_MAX_CHARS - 1) + '…';
 }
 
 export function Orbit({ avatars, count }: Props) {

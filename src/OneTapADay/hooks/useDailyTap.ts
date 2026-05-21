@@ -341,12 +341,22 @@ export function useDailyTap() {
   ];
   // Densely-populated mock — 47 fake avatars with names. Used by
   // ?demo=crowded to visualize the ring at full daily count.
+  //
+  // Names mix short nicknames ("Wenjun", "Bjørn"), Telegram-style handles
+  // ("alex_chen", "yasmine.n"), and full first-last pairs ("Marina Reyes",
+  // "Kai Watanabe"). The orbit's `truncate()` takes the first word, then
+  // ellipsis-caps at 10 characters — closer to real production data.
   const CROWD_NAMES = [
-    'Marina','Aria','Iris','Juno','Galen','Beck','Nora','Theo','Wren','Sage',
-    'Leo','Mira','Aki','Ren','Lior','Eva','Cleo','Otto','Zara','Kai',
-    'Anya','Bjorn','Cora','Dax','Elin','Finn','Gemma','Hugo','Ines','Jax',
-    'Klara','Lev','Maya','Niko','Owen','Pia','Quin','Rae','Sol','Tora',
-    'Uri','Vera','Wes','Xan','Yara','Zen','Asa',
+    'Marina Reyes', 'alex_chen', 'Jenny Park', 'ghostpixel', 'IsabelM',
+    'Aleksandar', 'Catherine_K', 'yasmine.n', 'Theo Vargas', 'Wenjun',
+    'Sage Holm', 'Leo Martín', 'Mira Tan', 'Akinori', 'Ren Naka',
+    'Liora Rosen', 'Eva Sanchez', 'Cleo Adekun', 'Otto Schmidt', 'Zara Sahin',
+    'Kai Watanabe', 'Anya Petrov', 'Bjørn', 'Cora MacLean', 'Daxton',
+    'Elin Berg', 'Finnegan', 'Gemma Costa', 'Hugo Lara', 'Inés Vega',
+    'Jax Reed', 'Klara Wojcik', 'Lev Sokol', 'Maya Patel', 'Niko Vasili',
+    "Owen O'Brien", 'Pia Bauer', 'Quinlan', 'Rae Hartman', 'Sol Cabrera',
+    'Tora Suzuki', 'Uri Naveh', 'Vera Petrenko', 'Wes Davies', 'Xander',
+    'Yara Habibi', 'Zen Yamashita',
   ];
   const crowdedAvatars: OrbitUser[] = CROWD_NAMES.map((name, i) => ({
     id: `u${i}`,
