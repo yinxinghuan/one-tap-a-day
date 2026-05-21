@@ -25,9 +25,15 @@ export function totemPrompt(dayString: string): string {
   const { word, tone } = themeForDay(dayString);
   return [
     `A symbolic ritual emblem of a ${word} — ${tone}.`,
-    `Ink and watercolor on aged parchment, soft glow, candle light, mystic ambient.`,
-    `Single object centered, minimal palette, muted earth tones, no text, no border.`,
-    `Square 1:1 composition.`,
+    // Style: traditional two-color woodblock print (ink + cinnabar).
+    `Two-color woodblock print: deep ink black and aged cinnabar red on cream paper.`,
+    // Composition: circular tondo. The subject must curl/coil/arrange to
+    // fill a perfect circle — the final image is masked to a circle in-app,
+    // so anything pushed to the corners is lost.
+    `CIRCULAR MEDALLION COMPOSITION (tondo) — the subject curls and arranges to fill a perfect circle, with the round shape fully occupied edge to edge.`,
+    `Bold simplified silhouette, visible carving texture, folk-art / Japanese ukiyo-e feel.`,
+    `Cream paper background, no rectangular frame, no text, no border.`,
+    `Square 1:1 image; the artwork itself is the circular medallion.`,
   ].join(' ');
 }
 
