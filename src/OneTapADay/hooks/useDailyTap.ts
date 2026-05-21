@@ -127,12 +127,32 @@ export function useDailyTap() {
     });
   }, [stats, persist]);
 
-  // Has the user tapped today? Two truthy signals — either is enough:
-  //   1. localStorage day marker matches today (we just tapped this session)
-  //   2. continuous_days >= 1 AND lastTapDay === today (we previously tapped)
-  // The first one handles the post-tap state before refresh returns; the
-  // second survives reload.
-  const tappedToday = local.lastTapDay === today;
+  // Has the user tapped today? Recover from any of three signals so the
+  // state survives webviews that drop localStorage:
+  //   1. `local.lastTapDay === today` — local save (immediate post-tap,
+  //      and survives reload when localStorage works).
+  //   2. `stats.day_click_count >= 1` — platform truth (when we re-enter
+  //      after localStorage cleared, the platform still knows we tapped
+  //      and stats fetches recover it).
+  //   3. `stats.continuous_days >= 1 AND last seen >= 1` — fallback for
+  //      day_click_count missing (some platform responses omit it).
+  const tappedToday =
+    local.lastTapDay === today ||
+    stats.day_click_count >= 1 ||
+    (stats.continuous_days >= 1 && local.lastSeenStreak >= 1);
+
+  // If the platform stat shows we tapped today but local doesn't reflect
+  // it (= localStorage was wiped), backfill so subsequent logic is
+  // consistent and we don't keep flickering.
+  useEffect(() => {
+    if (stats.day_click_count >= 1 && local.lastTapDay !== today) {
+      setLocal(prev => {
+        const next = { ...prev, lastTapDay: today };
+        persist(next);
+        return next;
+      });
+    }
+  }, [stats.day_click_count, local.lastTapDay, today, persist]);
 
   // Fetch today's totem from save list (any user's save for today wins —
   // there's only one "today's totem" globally).
@@ -298,7 +318,20 @@ export function useDailyTap() {
   const [orbitUsers, setOrbitUsers] = useState<OrbitUser[]>([]);
 
   useEffect(() => {
-    if (!isInAigram || !telegramId || !sessionId) return;
+    // Standalone fallback — when the game is opened directly on GitHub
+    // Pages (not inside the Aigram iframe), the platform user-info API
+    // isn't available, so we can't fetch a real name+avatar. Still seed
+    // a generic "you" avatar so post-tap the player sees themselves
+    // appear in the orbit. Replaced with the real user when available.
+    if (!isInAigram || !telegramId || !sessionId) {
+      setOrbitUsers([{
+        id: 'you',
+        name: 'You',
+        initial: '?',
+        isSelf: true,
+      }]);
+      return;
+    }
     let cancelled = false;
     (async () => {
       const fetchUser = async (id: string): Promise<OrbitUser | null> => {
