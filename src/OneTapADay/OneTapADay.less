@@ -280,6 +280,10 @@
   box-shadow: 0 2px 6px rgba(0,0,0,0.55), 0 0 10px rgba(196, 161, 101, 0.15);
   opacity: 0.95;
   z-index: 2;          // sits above filler dots
+  // Smooth reposition when new users tap and the slot distribution
+  // recalculates — avatars glide to their new ring positions instead of
+  // teleporting.
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
   img {
     width: 100%;
     height: 100%;
@@ -365,19 +369,36 @@
   text-shadow: 0 0 8px rgba(0,0,0,0.8);
   z-index: 3;
   opacity: 0.85;
-  // Tighten the line box so the vertical-center math (50%) matches the
-  // visual middle of the glyphs.
   line-height: 1;
-  // Hard cap to keep names from extending unpredictably far past the
-  // orbit and colliding with the text below the ring.
   max-width: 64px;
   overflow: hidden;
   text-overflow: ellipsis;
+  // Smooth reposition when the orbit reflows (matches the avatar's transition).
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .otd-orbit__name--self {
   color: @pink;
   opacity: 1;
   text-shadow: 0 0 10px rgba(0,0,0,0.7), 0 0 12px @pink-ghost;
+  // Entrance — sync with the avatar's scale animation: fade in + scale
+  // up from the slot's anchor point so the label feels like it joins
+  // the avatar as a single unit.
+  animation: otd-orbit-self-name-enter 0.9s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+@keyframes otd-orbit-self-name-enter {
+  0% {
+    opacity: 0;
+    scale: 0;
+  }
+  55% {
+    opacity: 1;
+    scale: 1.1;
+  }
+  100% {
+    opacity: 1;
+    scale: 1;
+  }
 }
 
 .otd-orbit__dot {
@@ -391,6 +412,8 @@
   opacity: 0.55;
   box-shadow: 0 0 6px @ochre-dim;
   z-index: 1;
+  // Smooth reposition when the orbit reflows.
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes otd-orbit-pulse {

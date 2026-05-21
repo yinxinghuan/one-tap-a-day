@@ -100,15 +100,17 @@ export function Orbit({ avatars, count }: Props) {
           const rotDeg = (s.angle * 180) / Math.PI + (flipped ? 180 : 0);
           // transform-origin pins the name's *inner edge* to the anchor
           // point so the avatar-to-name gap stays constant for every slot.
-          // The extra translate(-x, -50%) compensates for the box-size
-          // offset between the anchor (element-local) and the translated
-          // position (stage-coord), so the inner edge sits exactly at the
-          // anchor point rather than h/2 below it.
           const nameOrigin = flipped ? '100% 50%' : '0% 50%';
           const nameAlign = flipped ? 'translate(-100%, -50%)' : 'translate(0, -50%)';
 
+          // Key by the avatar's ID so React keeps the same DOM element
+          // across reflows — when new users tap and angles recalculate,
+          // the existing avatars just have their inline transform updated
+          // and the CSS transition glides them to their new slot. If we
+          // keyed by slot index instead, the avatars would unmount /
+          // remount and teleport.
           return (
-            <div key={s.i}>
+            <div key={`avatar-${av.id}`}>
               <span
                 className={`otd-orbit__avatar${av.isSelf ? ' otd-orbit__avatar--self' : ''}`}
                 style={{
@@ -139,7 +141,7 @@ export function Orbit({ avatars, count }: Props) {
 
         return (
           <span
-            key={s.i}
+            key={`dot-${s.i}`}
             className="otd-orbit__dot"
             style={{ transform: `translate(${x}px, ${y}px) translate(-50%, -50%)` }}
           />
