@@ -8,7 +8,7 @@ interface Props {
   totem: TodayTotem | null;
   summoning: boolean;
   onClose: () => void;
-  onArchive?: () => void;     // optional: opens archive view from reveal
+  onArchive?: () => void;
 }
 
 export function TotemReveal({ totem, summoning, onClose, onArchive }: Props) {
@@ -18,10 +18,18 @@ export function TotemReveal({ totem, summoning, onClose, onArchive }: Props) {
 
   if (!totem && !summoning) return null;
 
+  const isLoading = !totem && summoning;
+
   return (
     <div className="otd-totem" onPointerDown={onClose}>
       <div className="otd-totem__card" onPointerDown={e => e.stopPropagation()}>
-        <div className="otd-totem__title">{t('totem_title')}</div>
+        {isLoading ? (
+          <div className="otd-totem__title otd-totem__title--summoning">
+            {t('totem_summoning_title')}
+          </div>
+        ) : (
+          <div className="otd-totem__title">{t('totem_title')}</div>
+        )}
 
         {totem ? (
           <>
@@ -33,9 +41,14 @@ export function TotemReveal({ totem, summoning, onClose, onArchive }: Props) {
           </>
         ) : (
           <div className="otd-totem__summoning">
-            <div className="otd-totem__loading-bg" aria-hidden />
-            <div className="otd-totem__spinner" />
+            <div className="otd-totem__loading-disc" aria-hidden>
+              <div className="otd-totem__loading-art" />
+              <div className="otd-totem__loading-ring" />
+            </div>
             <SummoningPoetry />
+            <div className="otd-totem__summoning-hint">
+              {t('totem_summoning_hint')}
+            </div>
           </div>
         )}
 

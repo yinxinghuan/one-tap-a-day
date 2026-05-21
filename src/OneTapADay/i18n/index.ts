@@ -36,7 +36,9 @@ const en: Dict = {
   today_total: '{n} today',
   to_totem: '{n} to totem',
   totem_summoning: "Summoning today's totem…",
+  totem_summoning_hint: 'this can take a few moments',
   totem_title: "TODAY'S TOTEM",
+  totem_summoning_title: 'summoning',
   totem_subtitle: 'summoned by {n} of you',
   totem_archive: 'Archive',
   totem_close: 'Close',
@@ -66,7 +68,9 @@ const zh: Dict = {
   today_total: '今天 {n} 人',
   to_totem: '还差 {n} 人解锁图腾',
   totem_summoning: '正在召唤今日图腾…',
+  totem_summoning_hint: '需要几分钟',
   totem_title: '今日图腾',
+  totem_summoning_title: '召唤中',
   totem_subtitle: '由 {n} 人共同召唤',
   totem_archive: '历代',
   totem_close: '关闭',
@@ -236,13 +240,15 @@ const fr: Dict = {
 // For the other 6 locales, fall back to English copy for the new keys until
 // I add full translations. Existing keys stay localized.
 [es, pt, ru, ja, ko, fr].forEach(d => {
-  if (!d.streak_broken_lead) d.streak_broken_lead = en.streak_broken_lead;
-  if (!d.streak_broken_cta)  d.streak_broken_cta  = en.streak_broken_cta;
-  if (!d.archive_title)      d.archive_title      = en.archive_title;
-  if (!d.archive_subtitle)   d.archive_subtitle   = en.archive_subtitle;
-  if (!d.archive_link)       d.archive_link       = en.archive_link;
-  if (!d.archive_empty)      d.archive_empty      = en.archive_empty;
-  if (!d.back)               d.back               = en.back;
+  if (!d.streak_broken_lead)      d.streak_broken_lead      = en.streak_broken_lead;
+  if (!d.streak_broken_cta)       d.streak_broken_cta       = en.streak_broken_cta;
+  if (!d.archive_title)           d.archive_title           = en.archive_title;
+  if (!d.archive_subtitle)        d.archive_subtitle        = en.archive_subtitle;
+  if (!d.archive_link)            d.archive_link            = en.archive_link;
+  if (!d.archive_empty)           d.archive_empty           = en.archive_empty;
+  if (!d.back)                    d.back                    = en.back;
+  if (!d.totem_summoning_title)   d.totem_summoning_title   = en.totem_summoning_title;
+  if (!d.totem_summoning_hint)    d.totem_summoning_hint    = en.totem_summoning_hint;
 });
 
 // Mystical lines rotated under the spinner while the AI is generating the
