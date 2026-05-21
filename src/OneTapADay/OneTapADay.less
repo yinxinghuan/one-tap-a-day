@@ -897,7 +897,9 @@
   position: absolute;
   inset: 0;
   z-index: 30;
-  background: radial-gradient(ellipse at 50% 38%, #1a1410 0%, #0a0907 70%);
+  background:
+    radial-gradient(ellipse at 50% 36%, #1a1410 0%, #0a0907 75%),
+    @bg;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -907,22 +909,49 @@
   cursor: pointer;
   overflow: hidden;
 
-  // A single slow ashen halo pulse that radiates out behind the altar
-  // when the screen opens, then fades and stays. Echoes the live wave
-  // halo from the main screen but in cool gray — "this used to be alive".
+  // Single slow ashen halo pulse on enter — drained version of the live
+  // wave halo. Cream-white, not pink. Plays once, then stays at ~35%.
   &::before {
     content: '';
     position: absolute;
     inset: 0;
-    border-radius: 50%;
     pointer-events: none;
     background: radial-gradient(
       circle at 50% 36%,
       rgba(243, 237, 225, 0.10) 0%,
-      rgba(243, 237, 225, 0.04) 22%,
-      transparent 50%
+      rgba(243, 237, 225, 0.04) 24%,
+      transparent 56%
     );
     animation: otd-tomb-fade-once 6s ease-out forwards;
+    z-index: 0;
+  }
+
+  // Ashen brain-coral patina — same Turing mask, cream-tinted, very low
+  // opacity. Fades radially so the corners stay clean.
+  &__relief {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background-color: rgba(243, 237, 225, 0.10);
+    -webkit-mask-image: @turing-uri;
+            mask-image: @turing-uri;
+    -webkit-mask-repeat: repeat;
+            mask-repeat: repeat;
+    -webkit-mask-size: 200px 200px;
+            mask-size: 200px 200px;
+    -webkit-mask-mode: luminance;
+            mask-mode: luminance;
+    mix-blend-mode: screen;
+    opacity: 0.55;
+    // Fade pattern density toward edges so the texture pools around the
+    // altar and disperses at the corners.
+    -webkit-mask-image: @turing-uri,
+                        radial-gradient(circle at 50% 38%, black 22%, rgba(0,0,0,0.4) 55%, transparent 80%);
+            mask-image: @turing-uri,
+                        radial-gradient(circle at 50% 38%, black 22%, rgba(0,0,0,0.4) 55%, transparent 80%);
+    -webkit-mask-composite: source-in;
+            mask-composite: intersect;
   }
 
   &__card {
@@ -933,44 +962,58 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 18px;
+    gap: 22px;
   }
 
-  // Ashen altar — bigger, dimmer, cracked across the face.
+  // Stone altar disc — cold gray stone, no brass / no ochre. The α is
+  // chiseled into the surface (intaglio): dark cast above, faint
+  // highlight below, very low contrast color so it reads as "carved into
+  // dark stone" rather than printed on top.
   &__sigil {
     position: relative;
-    width: 180px;
-    height: 180px;
+    width: 188px;
+    height: 188px;
     border-radius: 50%;
     background:
-      radial-gradient(circle at 30% 25%, rgba(110, 88, 50, 0.42) 0%, rgba(58, 52, 44, 0.32) 55%, #0d0a07 100%);
+      radial-gradient(circle at 32% 26%, #2b2620 0%, #1a1612 55%, #0a0807 100%);
     display: flex;
     align-items: center;
     justify-content: center;
     box-shadow:
-      inset 0 1px 0 rgba(237, 230, 215, 0.06),
-      inset 0 -10px 22px rgba(0,0,0,0.65),
-      0 0 36px rgba(70, 50, 25, 0.18);
-    margin-bottom: 10px;
+      inset 0 1px 0 rgba(237, 230, 215, 0.10),
+      inset 0 -12px 26px rgba(0,0,0,0.88),
+      0 0 50px rgba(0,0,0,0.4),
+      0 0 0 1px rgba(0,0,0,0.7);
+    margin-bottom: 6px;
     overflow: hidden;
   }
   &__alpha {
-    font-family: 'Cinzel Decorative', 'Cinzel', serif;
-    font-style: italic;
-    font-size: 92px;
-    font-weight: 700;
-    color: rgba(243, 237, 225, 0.28);
-    text-shadow: 0 0 22px rgba(0,0,0,0.7);
+    // Cinzel upright (not Decorative italic) — italics shift the optical
+    // center to the right and read as ornamental rather than carved.
+    font-family: 'Cinzel', serif;
+    font-style: normal;
+    font-size: 96px;
+    font-weight: 600;
+    color: rgba(243, 237, 225, 0.26);
+    text-shadow:
+      // Intaglio: dark "rim" on top + faint highlight on bottom edge,
+      // simulating light catching the lower lip of a carved groove.
+      0 -2px 2px rgba(0, 0, 0, 0.95),
+      0 1px 0 rgba(255, 240, 220, 0.08),
+      0 0 26px rgba(0, 0, 0, 0.6);
     line-height: 1;
+    // Cinzel cap-height sits slightly below the line-box center; nudge
+    // up so the glyph looks visually centered in the disc.
+    margin-top: -4px;
   }
-  // SVG crack overlay — fills the disc, lines run across the α.
+  // SVG crack overlay — chiseled depth (light + dark strokes) instead of
+  // a plain line.
   &__crack {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
     pointer-events: none;
-    mix-blend-mode: multiply;
   }
 
   &__title {
@@ -980,7 +1023,7 @@
     color: @cream;
     letter-spacing: 0.02em;
     line-height: 1.15;
-    margin-top: 4px;
+    margin-top: 6px;
   }
   &__lead {
     font-family: 'Cinzel', serif;
@@ -988,47 +1031,56 @@
     font-size: 17px;
     color: @cream-soft;
     line-height: 1.4;
+    margin-top: -8px;
   }
-  &__rule {
-    width: 70px;
+
+  // Inscription as a hairline-flanked memorial plaque.
+  &__plaque {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 4px;
+  }
+  &__plaque-rule {
+    width: 38px;
     height: 1px;
     background: @stroke-warm;
-    margin: 6px 0;
-    opacity: 0.6;
+    opacity: 0.55;
   }
   &__inscription {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
   }
   &__best {
     font-family: 'Cinzel', serif;
-    font-size: 15px;
-    letter-spacing: 0.32em;
+    font-size: 16px;
+    letter-spacing: 0.36em;
     color: @pink;
     text-transform: uppercase;
     font-weight: 600;
+    text-shadow: 0 0 14px @pink-ghost;
   }
   &__dates {
     font-family: 'JetBrains Mono', monospace;
     font-size: 10px;
-    letter-spacing: 0.28em;
+    letter-spacing: 0.3em;
     color: @cream-dim;
-    opacity: 0.7;
+    opacity: 0.75;
   }
   &__silent {
     font-family: 'Cinzel', serif;
     font-style: italic;
     font-size: 13px;
-    letter-spacing: 0.18em;
+    letter-spacing: 0.2em;
     color: @cream-dim;
-    opacity: 0.7;
-    margin-top: 4px;
+    opacity: 0.75;
+    margin-top: 2px;
   }
 
   &__cta {
-    margin-top: 22px;
+    margin-top: 18px;
     background: transparent;
     color: @pink;
     border: 1px solid @pink;

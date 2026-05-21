@@ -27,8 +27,13 @@ export function Tombstone({ bestStreak, lastTapDay, onContinue }: Props) {
 
   return (
     <div className="otd-tomb-screen" onPointerDown={handle}>
+      {/* Ashen brain-coral patina — same Turing pattern as the live screen
+          but cream-tinted and very faint. 'The world is still there, just
+          drained of color.' */}
+      <div className="otd-tomb-screen__relief" aria-hidden />
+
       <div className="otd-tomb-screen__card" onPointerDown={e => e.stopPropagation()}>
-        {/* Ashen altar — the tap disc gone cold. Cracked across the face. */}
+        {/* Ashen altar — the tap disc gone cold, fractured across the face. */}
         <div className="otd-tomb-screen__sigil" aria-hidden>
           <span className="otd-tomb-screen__alpha">α</span>
           <svg
@@ -36,25 +41,31 @@ export function Tombstone({ bestStreak, lastTapDay, onContinue }: Props) {
             viewBox="0 0 100 100"
             preserveAspectRatio="none"
           >
-            {/* Two thin meandering cracks — irregular so they don't read as
-                geometry but as fractures in the disc face. */}
+            {/* Each crack uses two stacked strokes to suggest chisel depth:
+                a soft highlight on one side, a deeper shadow on the other. */}
             <path
-              d="M 38,3 L 46,18 L 40,30 L 52,46 L 44,62 L 56,80 L 48,98"
-              stroke="rgba(0,0,0,0.65)"
-              strokeWidth="0.6"
-              fill="none"
+              d="M 40,2 L 48,18 L 41,32 L 53,48 L 45,64 L 57,82 L 49,100"
+              stroke="rgba(255,238,210,0.10)" strokeWidth="1.4" fill="none"
             />
             <path
-              d="M 52,46 L 64,42 L 70,52"
-              stroke="rgba(0,0,0,0.45)"
-              strokeWidth="0.4"
-              fill="none"
+              d="M 40,2 L 48,18 L 41,32 L 53,48 L 45,64 L 57,82 L 49,100"
+              stroke="rgba(0,0,0,0.78)" strokeWidth="0.55" fill="none"
             />
             <path
-              d="M 44,62 L 32,68 L 28,76"
-              stroke="rgba(0,0,0,0.4)"
-              strokeWidth="0.4"
-              fill="none"
+              d="M 53,48 L 66,43 L 73,55"
+              stroke="rgba(255,238,210,0.07)" strokeWidth="1.0" fill="none"
+            />
+            <path
+              d="M 53,48 L 66,43 L 73,55"
+              stroke="rgba(0,0,0,0.55)" strokeWidth="0.4" fill="none"
+            />
+            <path
+              d="M 45,64 L 33,70 L 28,80"
+              stroke="rgba(255,238,210,0.05)" strokeWidth="0.9" fill="none"
+            />
+            <path
+              d="M 45,64 L 33,70 L 28,80"
+              stroke="rgba(0,0,0,0.5)" strokeWidth="0.4" fill="none"
             />
           </svg>
         </div>
@@ -62,19 +73,22 @@ export function Tombstone({ bestStreak, lastTapDay, onContinue }: Props) {
         <div className="otd-tomb-screen__title">{t('streak_broken_title')}</div>
         <div className="otd-tomb-screen__lead">{t('streak_broken_lead')}</div>
 
-        <div className="otd-tomb-screen__rule" aria-hidden />
-
-        {/* Inscription: the streak's length + date range */}
-        <div className="otd-tomb-screen__inscription">
-          <div className="otd-tomb-screen__best">{t('tombstone', { n: bestStreak })}</div>
-          {streakStart && lastTapDay && (
-            <div className="otd-tomb-screen__dates">
-              {t('tombstone_dates', {
-                from: prettyDateShort(streakStart),
-                to: prettyDateShort(lastTapDay),
-              })}
-            </div>
-          )}
+        {/* Inscription tablet — pink memorial text flanked by hairlines like
+            an engraved plaque. */}
+        <div className="otd-tomb-screen__plaque">
+          <span className="otd-tomb-screen__plaque-rule" aria-hidden />
+          <div className="otd-tomb-screen__inscription">
+            <div className="otd-tomb-screen__best">{t('tombstone', { n: bestStreak })}</div>
+            {streakStart && lastTapDay && (
+              <div className="otd-tomb-screen__dates">
+                {t('tombstone_dates', {
+                  from: prettyDateShort(streakStart),
+                  to: prettyDateShort(lastTapDay),
+                })}
+              </div>
+            )}
+          </div>
+          <span className="otd-tomb-screen__plaque-rule" aria-hidden />
         </div>
 
         {silentDays != null && (
