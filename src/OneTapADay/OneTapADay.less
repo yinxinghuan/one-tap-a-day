@@ -233,6 +233,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  // Names extending radially outward overflow the box (overflow visible by
+  // default). A bit of extra margin keeps them clear of the hint/stats
+  // text below — especially for the crowded state where every slot has
+  // an outward-pointing name.
+  margin-bottom: 22px;
 }
 
 // ---------- Orbit: rows of glyph votives ----------
@@ -304,6 +309,7 @@
   position: absolute;
   left: 50%;
   top: 50%;
+  display: inline-block;
   font-family: 'Cinzel', serif;
   font-size: 11px;
   font-weight: 600;
@@ -317,6 +323,11 @@
   // Tighten the line box so the vertical-center math (50%) matches the
   // visual middle of the glyphs.
   line-height: 1;
+  // Hard cap to keep names from extending unpredictably far past the
+  // orbit and colliding with the text below the ring.
+  max-width: 64px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .otd-orbit__name--self {
   color: @pink;
@@ -556,33 +567,66 @@
   right: 0;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  padding: 0 28px;
   gap: 18px;
   z-index: 1;
 
+  // AlterU mark — quiet brand watermark on the right.
   &__mark {
-    width: 30px;
-    height: 30px;
+    width: 28px;
+    height: 28px;
     filter: brightness(0.92) sepia(0.15);
-    opacity: 0.55;
+    opacity: 0.45;
     pointer-events: none;
   }
 
+  // Archive entry — pill-style button with a "stacked totems" icon. Now
+  // reads as a proper interactive element rather than a faint text label.
   &__archive {
-    background: transparent;
-    border: none;
-    padding: 6px 10px;
-    color: @cream-dim;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(245, 177, 199, 0.05);
+    border: 1px solid @stroke-warm;
+    border-radius: 999px;
+    padding: 7px 13px 7px 10px;
+    color: @cream-soft;
     font-family: 'Cinzel', serif;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 600;
-    letter-spacing: 0.34em;
+    letter-spacing: 0.3em;
     text-transform: uppercase;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
-    opacity: 0.55;
-    transition: color 0.2s ease, opacity 0.2s ease;
-    &:hover, &:active { color: @pink; opacity: 0.9; }
+    transition:
+      color 0.2s ease,
+      border-color 0.2s ease,
+      background 0.2s ease;
+    &:hover, &:active {
+      color: @pink;
+      border-color: @pink-dim;
+      background: @pink-ghost;
+      .otd-foot__archive-icon circle {
+        fill: @pink;
+        opacity: 0.85;
+      }
+    }
+  }
+  &__archive-icon {
+    width: 22px;
+    height: 14px;
+    overflow: visible;
+    circle {
+      fill: @cream-soft;
+      opacity: 0.55;
+      stroke: rgba(0, 0, 0, 0.6);
+      stroke-width: 1.2;
+      transition: fill 0.2s ease, opacity 0.2s ease;
+    }
+  }
+  &__archive-text {
+    line-height: 1;
   }
 }
 

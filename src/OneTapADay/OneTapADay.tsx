@@ -117,8 +117,15 @@ export default function OneTapADay() {
           type="button"
           className="otd-foot__archive"
           onPointerDown={() => setShowArchive(true)}
+          aria-label={t('archive_link')}
         >
-          {t('archive_link')}
+          {/* Three-circle stacked-cards icon — reads as a pile of totems */}
+          <svg className="otd-foot__archive-icon" viewBox="0 0 24 24" aria-hidden>
+            <circle cx="6" cy="13" r="5" />
+            <circle cx="12" cy="11" r="5" />
+            <circle cx="18" cy="13" r="5" />
+          </svg>
+          <span className="otd-foot__archive-text">{t('archive_link')}</span>
         </button>
         <img src="/one-tap-a-day/alteru.svg" alt="alteru" className="otd-foot__mark" />
       </footer>
