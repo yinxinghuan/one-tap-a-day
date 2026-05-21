@@ -28,9 +28,12 @@ export function Archive({ totems, onClose }: Props) {
           <div className="otd-archive__title">{t('archive_title')}</div>
           <div className="otd-archive__sub">{t('archive_subtitle')}</div>
           {sorted.length > 0 && (
-            <div className="otd-archive__count">
-              {t('archive_count', { n: sorted.length })}
-            </div>
+            <>
+              <div className="otd-archive__count">
+                {t('archive_count', { n: sorted.length })}
+              </div>
+              <div className="otd-archive__hint">{t('archive_hint')}</div>
+            </>
           )}
         </div>
 

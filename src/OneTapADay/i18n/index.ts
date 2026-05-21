@@ -57,6 +57,7 @@ const en: Dict = {
   archive_title: 'Totem Archive',
   archive_subtitle: 'Days you were there.',
   archive_count: '{n} totems witnessed',
+  archive_hint: 'tap a day to revisit',
   archive_link: 'Archive',
   archive_empty: "You haven't met a totem yet.",
   back: 'Back',
@@ -96,6 +97,7 @@ const zh: Dict = {
   archive_title: '图腾档案',
   archive_subtitle: '你来过的那些日子。',
   archive_count: '共见证 {n} 次',
+  archive_hint: '点开任一日重温',
   archive_link: '档案',
   archive_empty: '还没遇见过图腾。',
   back: '返回',
@@ -275,6 +277,7 @@ const fr: Dict = {
   if (!d.tombstone_since_one)        d.tombstone_since_one        = en.tombstone_since_one;
   if (!d.tombstone_dates)            d.tombstone_dates            = en.tombstone_dates;
   if (!d.archive_count)              d.archive_count              = en.archive_count;
+  if (!d.archive_hint)               d.archive_hint               = en.archive_hint;
 });
 
 // Mystical lines rotated under the spinner while the AI is generating the
