@@ -4,3 +4,5 @@ dist
 *.log
 .vite
 _qa_*.png
+_v*.webp
+_v*.png
