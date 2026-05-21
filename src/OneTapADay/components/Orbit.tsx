@@ -90,7 +90,12 @@ export function Orbit({ avatars, count }: Props) {
           const rotDeg = (s.angle * 180) / Math.PI + (flipped ? 180 : 0);
           // transform-origin pins the name's *inner edge* to the anchor
           // point so the avatar-to-name gap stays constant for every slot.
+          // The extra translate(-x, -50%) compensates for the box-size
+          // offset between the anchor (element-local) and the translated
+          // position (stage-coord), so the inner edge sits exactly at the
+          // anchor point rather than h/2 below it.
           const nameOrigin = flipped ? '100% 50%' : '0% 50%';
+          const nameAlign = flipped ? 'translate(-100%, -50%)' : 'translate(0, -50%)';
 
           return (
             <div key={s.i}>
@@ -111,7 +116,7 @@ export function Orbit({ avatars, count }: Props) {
                 <span
                   className={`otd-orbit__name${av.isSelf ? ' otd-orbit__name--self' : ''}`}
                   style={{
-                    transform: `translate(${nameX}px, ${nameY}px) rotate(${rotDeg}deg)`,
+                    transform: `translate(${nameX}px, ${nameY}px) ${nameAlign} rotate(${rotDeg}deg)`,
                     transformOrigin: nameOrigin,
                   }}
                 >
