@@ -5,9 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Cinzel+Decorative:wght@400;700&family=Montserrat:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <!-- Fonts are self-hosted (public/fonts/*.woff2) — Google Fonts CDN
+         was inconsistent on iOS / Aigram in-app browsers; bundling the
+         woff2 files keeps the typography identical across devices. -->
+    <link rel="stylesheet" href="/one-tap-a-day/fonts.css" />
     <title>One Tap a Day</title>
   </head>
   <body>

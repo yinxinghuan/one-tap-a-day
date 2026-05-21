@@ -288,9 +288,73 @@ export function useDailyTap() {
   const streakBroken =
     local.longestStreak >= 1 && stats.continuous_days === 0 && !tappedToday;
 
-  // Build orbit avatar list. Real mode: leave empty (renderer falls back to
-  // abstract ring dots). Demo mode below populates with mocks.
-  const orbitUsers: OrbitUser[] = [];
+  // Build orbit avatar list. We fetch:
+  //   1. The current user's own avatar + name (from the platform user
+  //      info API) — this is the player's slot in the orbit.
+  //   2. The recent 6 users' saves via get/data/list, then per-user info
+  //      lookups for each — so the player sees a few of the actual
+  //      community members alongside themselves.
+  // Real mode only; demo mode overrides this with mocks below.
+  const [orbitUsers, setOrbitUsers] = useState<OrbitUser[]>([]);
+
+  useEffect(() => {
+    if (!isInAigram || !telegramId || !sessionId) return;
+    let cancelled = false;
+    (async () => {
+      const fetchUser = async (id: string): Promise<OrbitUser | null> => {
+        try {
+          const res = await callAigramAPI<AigramResponse<{
+            telegram_id: string;
+            name?: string;
+            head_url?: string;
+          }>>(
+            `/note/telegram/user/get/info/by/telegram_id?telegram_id=${encodeURIComponent(id)}`,
+            'GET',
+          );
+          if (!res?.data) return null;
+          return {
+            id: String(res.data.telegram_id || id),
+            name: res.data.name,
+            url: res.data.head_url,
+            initial: (res.data.name || '?').slice(0, 1).toUpperCase(),
+            isSelf: String(id) === String(telegramId),
+          };
+        } catch { return null; }
+      };
+
+      // Self first — instant feedback that "I'm in the orbit".
+      const self = await fetchUser(String(telegramId));
+      if (cancelled) return;
+      if (self) setOrbitUsers([self]);
+
+      // Then the rest of the recent community.
+      try {
+        const res = await callAigramAPI<AigramResponse<Array<{
+          user_id: string;
+          time?: string;
+          resource_data?: string;
+        }>>>(
+          `/note/aigram/ai/game/get/data/list?session_id=${encodeURIComponent(sessionId)}`,
+          'GET',
+        );
+        const rows = Array.isArray(res?.data) ? res.data : [];
+        const otherIds: string[] = [];
+        const seen = new Set<string>([String(telegramId)]);
+        for (const row of rows) {
+          if (!row.user_id || seen.has(String(row.user_id))) continue;
+          seen.add(String(row.user_id));
+          otherIds.push(String(row.user_id));
+          if (otherIds.length >= 5) break;
+        }
+        const others = (await Promise.all(otherIds.map(fetchUser)))
+          .filter((u): u is OrbitUser => u != null);
+        if (!cancelled) {
+          setOrbitUsers(self ? [self, ...others] : others);
+        }
+      } catch { /* network / bridge — keep just self */ }
+    })();
+    return () => { cancelled = true; };
+  }, [sessionId]);
 
   const baseReturn = {
     today,
