@@ -127,19 +127,20 @@ export function useDailyTap() {
     });
   }, [stats, persist]);
 
-  // Has the user tapped today? Recover from any of three signals so the
-  // state survives webviews that drop localStorage:
-  //   1. `local.lastTapDay === today` — local save (immediate post-tap,
-  //      and survives reload when localStorage works).
-  //   2. `stats.day_click_count >= 1` — platform truth (when we re-enter
-  //      after localStorage cleared, the platform still knows we tapped
-  //      and stats fetches recover it).
-  //   3. `stats.continuous_days >= 1 AND last seen >= 1` — fallback for
-  //      day_click_count missing (some platform responses omit it).
+  // Has the user tapped today? Two signals — local save (covers normal
+  // reload) plus the platform's `day_click_count` (covers webviews that
+  // drop localStorage; the platform still knows we tapped today and the
+  // stats fetch recovers it).
+  //
+  // Do NOT infer tappedToday from `continuous_days` — the streak counter
+  // carries yesterday's value until the user fails their next day, so
+  // "I have a streak" does not imply "I tapped today". A previous version
+  // of this hook used continuous_days as a third fallback signal and
+  // phantom-locked every returning user out of today's tap, suppressing
+  // their trigger() and stalling day_user_count at 1.
   const tappedToday =
     local.lastTapDay === today ||
-    stats.day_click_count >= 1 ||
-    (stats.continuous_days >= 1 && local.lastSeenStreak >= 1);
+    stats.day_click_count >= 1;
 
   // If the platform stat shows we tapped today but local doesn't reflect
   // it (= localStorage was wiped), backfill so subsequent logic is
