@@ -84,6 +84,20 @@ interface TotemSaveRow {
   resource_data: string;
 }
 
+/** Does this save row indicate the user tapped today? Accepts either the
+ *  LocalState shape (has lastTapDay) or the TodayTotem shape (has date +
+ *  imageUrl — whoever wrote the totem is by definition a today-tapper). */
+function savedRowIsTappedToday(resourceData: string | undefined, today: string): boolean {
+  if (!resourceData) return false;
+  try {
+    const parsed = JSON.parse(resourceData);
+    if (!parsed || typeof parsed !== 'object') return false;
+    if (parsed.lastTapDay === today) return true;
+    if (parsed.date === today && parsed.imageUrl) return true;
+    return false;
+  } catch { return false; }
+}
+
 export function useDailyTap() {
   const today = utcDayString();
   const sessionId = getGameUuid();
@@ -312,9 +326,10 @@ export function useDailyTap() {
   // Build orbit avatar list. We fetch:
   //   1. The current user's own avatar + name (from the platform user
   //      info API) — this is the player's slot in the orbit.
-  //   2. The recent 6 users' saves via get/data/list, then per-user info
-  //      lookups for each — so the player sees a few of the actual
-  //      community members alongside themselves.
+  //   2. Recent users from get/data/list, **filtered to those whose
+  //      latest save indicates they tapped today**, then per-user info
+  //      lookups for each — so the orbit visualizes today's ritual
+  //      circle, not the all-time community.
   // Real mode only; demo mode overrides this with mocks below.
   const [orbitUsers, setOrbitUsers] = useState<OrbitUser[]>([]);
 
@@ -376,6 +391,12 @@ export function useDailyTap() {
         const seen = new Set<string>([String(telegramId)]);
         for (const row of rows) {
           if (!row.user_id || seen.has(String(row.user_id))) continue;
+          // Only include users whose save indicates they tapped today.
+          // Two acceptable save shapes:
+          //   - LocalState:  { lastTapDay: "YYYY-MM-DD", ... }
+          //   - TodayTotem:  { date: "YYYY-MM-DD", imageUrl, caption, ... }
+          // (the totem writer is by definition someone who tapped today)
+          if (!savedRowIsTappedToday(row.resource_data, today)) continue;
           seen.add(String(row.user_id));
           otherIds.push(String(row.user_id));
           if (otherIds.length >= 5) break;
