@@ -10,7 +10,7 @@
 // clustered at the start, so the ~6 known faces are visible "around" the
 // circle of community rather than all on one side.
 
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useState } from 'react';
 import { openAigramProfile } from '../../shared/runtime';
 
 export interface OrbitAvatar {
@@ -55,11 +55,17 @@ function truncate(name: string): string {
 }
 
 export function Orbit({ avatars, count }: Props) {
+  // On-screen tap debug toast — confirms the tap landed in JS even
+  // when console isn't available (e.g. Aigram iOS WKWebView).
+  const [debug, setDebug] = useState<string | null>(null);
+
   // Tap on an avatar/name jumps to that user's Aigram profile. No-ops
   // outside Aigram (e.g. standalone demos) because openAigramProfile
-  // returns early when api_origin is not set. Logged so we can confirm
-  // the tap landed when debugging on-device.
-  const openProfile = useCallback((id: string, source: 'avatar' | 'name') => {
+  // returns early when api_origin is not set.
+  const openProfile = useCallback((id: string, name: string | undefined, source: 'avatar' | 'name') => {
+    const label = `${source}: ${name || id}`;
+    setDebug(label);
+    window.setTimeout(() => setDebug(null), 1800);
     // eslint-disable-next-line no-console
     console.log(`[otd] open profile ${id} via ${source}`);
     openAigramProfile(id);
@@ -132,7 +138,7 @@ export function Orbit({ avatars, count }: Props) {
                   transform: `translate(${x}px, ${y}px) translate(-50%, -50%) rotate(${rotDeg}deg)`,
                 }}
                 aria-label={av.name ? `Open ${av.name}'s profile` : 'Open profile'}
-                onPointerDown={() => openProfile(av.id, 'avatar')}
+                onPointerDown={() => openProfile(av.id, av.name, 'avatar')}
               >
                 <span
                   className={`otd-orbit__avatar${av.isSelf ? ' otd-orbit__avatar--self' : ''}`}
@@ -154,7 +160,7 @@ export function Orbit({ avatars, count }: Props) {
                     transformOrigin: nameOrigin,
                   }}
                   aria-label={`Open ${av.name}'s profile`}
-                  onPointerDown={() => openProfile(av.id, 'name')}
+                  onPointerDown={() => openProfile(av.id, av.name, 'name')}
                 >
                   {truncate(av.name)}
                 </button>
@@ -171,6 +177,11 @@ export function Orbit({ avatars, count }: Props) {
           />
         );
       })}
+      {debug && (
+        <div className="otd-orbit__debug" role="status">
+          tapped: {debug}
+        </div>
+      )}
     </div>
   );
 }

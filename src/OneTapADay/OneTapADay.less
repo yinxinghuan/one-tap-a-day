@@ -260,6 +260,31 @@
   justify-content: center;
 }
 
+// Temporary on-screen tap debug toast — see if pointerdown actually fires
+// in Aigram WebView. Remove once the profile-jump flow is confirmed.
+.otd-orbit__debug {
+  position: absolute;
+  left: 50%;
+  bottom: -50px;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.85);
+  color: #f5b1c7;
+  font-family: 'Onest', system-ui, sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(245, 177, 199, 0.6);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 100;
+  animation: otd-debug-pop 0.2s ease-out;
+}
+@keyframes otd-debug-pop {
+  from { opacity: 0; transform: translateX(-50%) translateY(4px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
 // Single ring at radius R. Each slot is positioned via inline transform
 // (radial math in the component); the CSS just styles the visuals.
 //
