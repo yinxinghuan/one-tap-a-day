@@ -10,7 +10,8 @@
 // clustered at the start, so the ~6 known faces are visible "around" the
 // circle of community rather than all on one side.
 
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
+import { openAigramProfile } from '../../shared/runtime';
 
 export interface OrbitAvatar {
   id: string;
@@ -54,6 +55,13 @@ function truncate(name: string): string {
 }
 
 export function Orbit({ avatars, count }: Props) {
+  // Tap on an avatar/name jumps to that user's Aigram profile. No-ops
+  // outside Aigram (e.g. standalone demos) because openAigramProfile
+  // returns early when api_origin is not set.
+  const openProfile = useCallback((id: string) => {
+    openAigramProfile(id);
+  }, []);
+
   const slots = useMemo<Slot[]>(() => {
     // Cap both arms at MAX_SLOTS so the ring never holds more than that
     // many positions even if `avatars` or `count` go higher.
@@ -117,6 +125,10 @@ export function Orbit({ avatars, count }: Props) {
                   transform:
                     `translate(${x}px, ${y}px) translate(-50%, -50%) rotate(${rotDeg}deg)`,
                 }}
+                role="button"
+                tabIndex={0}
+                aria-label={av.name ? `Open ${av.name}'s profile` : 'Open profile'}
+                onPointerDown={() => openProfile(av.id)}
               >
                 {av.url ? (
                   <img src={av.url} alt="" draggable={false} />
@@ -131,6 +143,10 @@ export function Orbit({ avatars, count }: Props) {
                     transform: `translate(${nameX}px, ${nameY}px) ${nameAlign} rotate(${rotDeg}deg)`,
                     transformOrigin: nameOrigin,
                   }}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Open ${av.name}'s profile`}
+                  onPointerDown={() => openProfile(av.id)}
                 >
                   {truncate(av.name)}
                 </span>
