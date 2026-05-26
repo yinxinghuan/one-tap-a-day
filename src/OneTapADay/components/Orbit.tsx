@@ -57,8 +57,11 @@ function truncate(name: string): string {
 export function Orbit({ avatars, count }: Props) {
   // Tap on an avatar/name jumps to that user's Aigram profile. No-ops
   // outside Aigram (e.g. standalone demos) because openAigramProfile
-  // returns early when api_origin is not set.
-  const openProfile = useCallback((id: string) => {
+  // returns early when api_origin is not set. Logged so we can confirm
+  // the tap landed when debugging on-device.
+  const openProfile = useCallback((id: string, source: 'avatar' | 'name') => {
+    // eslint-disable-next-line no-console
+    console.log(`[otd] open profile ${id} via ${source}`);
     openAigramProfile(id);
   }, []);
 
@@ -114,42 +117,47 @@ export function Orbit({ avatars, count }: Props) {
           // Key by the avatar's ID so React keeps the same DOM element
           // across reflows — when new users tap and angles recalculate,
           // the existing avatars just have their inline transform updated
-          // and the CSS transition glides them to their new slot. If we
-          // keyed by slot index instead, the avatars would unmount /
-          // remount and teleport.
+          // and the CSS transition glides them to their new slot.
+          //
+          // Avatar = transparent <button> wrapper (52×52 hit target) with
+          // the inner 32×32 visual circle. The button gets the radial
+          // positioning + click handler; the inner circle stays purely
+          // visual (overflow: hidden for the cropped image).
           return (
             <div key={`avatar-${av.id}`}>
-              <span
-                className={`otd-orbit__avatar${av.isSelf ? ' otd-orbit__avatar--self' : ''}`}
+              <button
+                type="button"
+                className="otd-orbit__hit"
                 style={{
-                  transform:
-                    `translate(${x}px, ${y}px) translate(-50%, -50%) rotate(${rotDeg}deg)`,
+                  transform: `translate(${x}px, ${y}px) translate(-50%, -50%) rotate(${rotDeg}deg)`,
                 }}
-                role="button"
-                tabIndex={0}
                 aria-label={av.name ? `Open ${av.name}'s profile` : 'Open profile'}
-                onPointerDown={() => openProfile(av.id)}
+                onPointerDown={() => openProfile(av.id, 'avatar')}
               >
-                {av.url ? (
-                  <img src={av.url} alt="" draggable={false} />
-                ) : (
-                  <span className="otd-orbit__initial">{av.initial}</span>
-                )}
-              </span>
-              {av.name && (
                 <span
+                  className={`otd-orbit__avatar${av.isSelf ? ' otd-orbit__avatar--self' : ''}`}
+                  aria-hidden
+                >
+                  {av.url ? (
+                    <img src={av.url} alt="" draggable={false} />
+                  ) : (
+                    <span className="otd-orbit__initial">{av.initial}</span>
+                  )}
+                </span>
+              </button>
+              {av.name && (
+                <button
+                  type="button"
                   className={`otd-orbit__name${av.isSelf ? ' otd-orbit__name--self' : ''}`}
                   style={{
                     transform: `translate(${nameX}px, ${nameY}px) ${nameAlign} rotate(${rotDeg}deg)`,
                     transformOrigin: nameOrigin,
                   }}
-                  role="button"
-                  tabIndex={0}
                   aria-label={`Open ${av.name}'s profile`}
-                  onPointerDown={() => openProfile(av.id)}
+                  onPointerDown={() => openProfile(av.id, 'name')}
                 >
                   {truncate(av.name)}
-                </span>
+                </button>
               )}
             </div>
           );
