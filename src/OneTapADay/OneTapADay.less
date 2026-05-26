@@ -280,6 +280,9 @@
   box-shadow: 0 2px 6px rgba(0,0,0,0.55), 0 0 10px rgba(196, 161, 101, 0.15);
   opacity: 0.95;
   z-index: 2;          // sits above filler dots
+  // Parent .otd-orbit has pointer-events:none (so taps fall through to the
+  // central tap button). Re-enable here so the avatar itself stays tappable.
+  pointer-events: auto;
   cursor: pointer;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
@@ -368,6 +371,8 @@
   letter-spacing: 0.04em;
   color: @cream-soft;
   white-space: nowrap;
+  // Same opt-back-in as .otd-orbit__avatar — parent has pointer-events:none.
+  pointer-events: auto;
   cursor: pointer;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
