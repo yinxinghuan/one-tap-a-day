@@ -285,6 +285,37 @@
   to   { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 
+// Inline diagnostic panel for ?debug=1 — shows raw platform stats so
+// we can verify what the API returns in production. Top-left, monospace.
+.otd-debug-panel {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 200;
+  background: rgba(0, 0, 0, 0.78);
+  color: #f5b1c7;
+  font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+  font-size: 11px;
+  line-height: 1.5;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px dashed rgba(245, 177, 199, 0.5);
+  pointer-events: none;
+  min-width: 160px;
+}
+.otd-debug-panel__title {
+  letter-spacing: 0.18em;
+  font-size: 10px;
+  opacity: 0.7;
+  margin-bottom: 4px;
+}
+.otd-debug-panel__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  > strong { font-weight: 700; }
+}
+
 // Single ring at radius R. Each slot is positioned via inline transform
 // (radial math in the component); the CSS just styles the visuals.
 //

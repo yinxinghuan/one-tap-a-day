@@ -67,6 +67,13 @@ export default function OneTapADay() {
 
   const stageClass = `otd-stage${tappedToday ? ' otd-stage--tapped' : ''}`;
 
+  // ?debug=1 surfaces the raw platform stats inline. The user reported
+  // day_user_count seems suspiciously stuck >= 99 in prod — this panel
+  // lets us see exactly what the API returned without needing a
+  // remote debugger attached.
+  const debugOn = typeof window !== 'undefined'
+    && new URLSearchParams(window.location.search).get('debug') === '1';
+
   return (
     <div className={stageClass} onPointerDown={ensureAudio}>
       <div className="otd-bg" />
@@ -74,6 +81,30 @@ export default function OneTapADay() {
         <div className="otd-relief__highlight" />
         <div className="otd-relief__shadow" />
       </div>
+
+      {debugOn && (
+        <div className="otd-debug-panel" role="note">
+          <div className="otd-debug-panel__title">STATS · DEBUG</div>
+          <div className="otd-debug-panel__row">
+            <span>day_click</span><strong>{stats.day_click_count}</strong>
+          </div>
+          <div className="otd-debug-panel__row">
+            <span>day_user</span><strong>{stats.day_user_count}</strong>
+          </div>
+          <div className="otd-debug-panel__row">
+            <span>total_click</span><strong>{stats.total_click_count}</strong>
+          </div>
+          <div className="otd-debug-panel__row">
+            <span>total_user</span><strong>{stats.total_user_count}</strong>
+          </div>
+          <div className="otd-debug-panel__row">
+            <span>cont_days</span><strong>{stats.continuous_days}</strong>
+          </div>
+          <div className="otd-debug-panel__row">
+            <span>orbitUsers</span><strong>{orbitUsers.length}</strong>
+          </div>
+        </div>
+      )}
 
       <header className="otd-header">
         <div className="otd-header__brand">

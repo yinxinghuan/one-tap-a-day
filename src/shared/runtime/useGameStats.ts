@@ -53,8 +53,17 @@ export function useGameStats(event: string): UseGameStats {
         `/note/aigram/ai/game/get/play/stats?session_id=${encodeURIComponent(sessionId)}&event=${encodeURIComponent(event)}`,
         'GET',
       );
+      // eslint-disable-next-line no-console
+      console.info('[runtime/useGameStats] response', {
+        session_id: sessionId,
+        event,
+        raw: res,
+        data: res?.data ?? null,
+      });
       setStats(res?.data ?? EMPTY);
-    } catch {
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.warn('[runtime/useGameStats] fetch failed', e);
       setStats(EMPTY);
     } finally {
       setLoading(false);
