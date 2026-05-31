@@ -141,33 +141,20 @@ export function useDailyTap() {
     });
   }, [stats, persist]);
 
-  // Has the user tapped today? Two signals — local save (covers normal
-  // reload) plus the platform's `day_click_count` (covers webviews that
-  // drop localStorage; the platform still knows we tapped today and the
-  // stats fetch recovers it).
+  // Has the user tapped today? ONE signal — the local save's lastTapDay.
+  // `useGameSave` already round-trips through the platform cloud save, so
+  // a webview that drops localStorage still recovers `lastTapDay` from the
+  // cloud copy on next mount.
   //
-  // Do NOT infer tappedToday from `continuous_days` — the streak counter
-  // carries yesterday's value until the user fails their next day, so
-  // "I have a streak" does not imply "I tapped today". A previous version
-  // of this hook used continuous_days as a third fallback signal and
-  // phantom-locked every returning user out of today's tap, suppressing
-  // their trigger() and stalling day_user_count at 1.
-  const tappedToday =
-    local.lastTapDay === today ||
-    stats.day_click_count >= 1;
-
-  // If the platform stat shows we tapped today but local doesn't reflect
-  // it (= localStorage was wiped), backfill so subsequent logic is
-  // consistent and we don't keep flickering.
-  useEffect(() => {
-    if (stats.day_click_count >= 1 && local.lastTapDay !== today) {
-      setLocal(prev => {
-        const next = { ...prev, lastTapDay: today };
-        persist(next);
-        return next;
-      });
-    }
-  }, [stats.day_click_count, local.lastTapDay, today, persist]);
+  // DO NOT add a platform-stats fallback here. Two earlier traps:
+  //   - `continuous_days` carries yesterday's value, so it cannot mean
+  //     "tapped today" — phantom-locked every returning user.
+  //   - `day_click_count >= 1` was suspected of stale state across UTC
+  //     midnight (see feedback_platform_daily_stat_lock_trap.md). When
+  //     that stat doesn't reset, OR-ing it into `tappedToday` locks the
+  //     user permanently on day N+1. Removed 2026-05-31 after the
+  //     user-reported "can't tap again the next day" bug.
+  const tappedToday = local.lastTapDay === today;
 
   // Fetch today's totem from save list (any user's save for today wins —
   // there's only one "today's totem" globally).
