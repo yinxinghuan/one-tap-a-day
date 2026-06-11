@@ -75,6 +75,11 @@ export function TotemReveal({ totem, summoning, summonCount, summonedAt, onClose
             </div>
             <div className="otd-totem__caption">"{totem.caption}"</div>
             <div className="otd-totem__sub">{t('totem_subtitle', { n: totem.summonedBy })}</div>
+            {totem.milestone != null && (
+              <div className="otd-totem__milestone">
+                {t('totem_milestone_label', { n: totem.milestone })}
+              </div>
+            )}
           </>
         ) : (
           <div className="otd-totem__summoning">

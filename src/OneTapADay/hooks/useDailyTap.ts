@@ -22,7 +22,25 @@ import { utcDayString } from '../utils/day';
 import { totemPrompt, captionPrompt, TOTEM_CAPTION_SYSTEM } from '../utils/totem';
 
 const EVENT_NAME = 'tap';
+
+/** Cohort milestone interval. The game unlocks one totem every time the
+ *  lifetime-cumulative number of unique tappers crosses another multiple
+ *  of this value. Was "100 unique users TODAY"; user reported daily
+ *  traffic is ~5-6 so the daily target was structurally unreachable.
+ *  2026-06-12 pivoted to lifetime cumulative — at ~5/day cadence the
+ *  first totem lands in ~3 weeks, then a new totem every milestone after. */
 export const TOTEM_THRESHOLD = 100;
+
+/** The highest milestone the lifetime tappers count has crossed (0 if not
+ *  yet hit the first one). */
+export function currentMilestone(totalUsers: number): number {
+  return Math.floor(totalUsers / TOTEM_THRESHOLD) * TOTEM_THRESHOLD;
+}
+
+/** The next milestone the lifetime tappers count is climbing toward. */
+export function nextMilestone(totalUsers: number): number {
+  return currentMilestone(totalUsers) + TOTEM_THRESHOLD;
+}
 
 // Demo / preview mode — when the game is opened outside Aigram (e.g. on the
 // GitHub Pages preview URL) with a `?demo=<state>` query param, the hook
@@ -47,10 +65,16 @@ function readDemoMode(): DemoMode | null {
 }
 
 export interface TodayTotem {
-  date: string;             // YYYY-MM-DD (UTC)
+  /** UTC day the totem was unlocked (when its milestone was crossed). */
+  date: string;
   imageUrl: string;
   caption: string;
-  summonedBy: number;       // day_user_count at the moment of generation
+  /** Lifetime total_user_count at the moment of generation. */
+  summonedBy: number;
+  /** The lifetime-cumulative milestone this totem represents (100, 200,
+   *  300, ...). Optional for backward compat — pre-2026-06-12 saves are
+   *  date-keyed, no milestone. The archive still displays them. */
+  milestone?: number;
 }
 
 export interface LocalState {
@@ -156,9 +180,12 @@ export function useDailyTap() {
   //     user-reported "can't tap again the next day" bug.
   const tappedToday = local.lastTapDay === today;
 
-  // Fetch today's totem from save list (any user's save for today wins —
-  // there's only one "today's totem" globally).
-  const fetchTodayTotem = useCallback(async (): Promise<TodayTotem | null> => {
+  // Fetch the totem for a given milestone (e.g. 100, 200) from save list.
+  // Any user's save that matches the milestone wins — there's only one
+  // totem per milestone globally. If none match by milestone, falls back
+  // to the most recent date-keyed save (for legacy support: pre-2026-06-12
+  // saves had no milestone field).
+  const fetchTotemForMilestone = useCallback(async (milestone: number): Promise<TodayTotem | null> => {
     if (!isInAigram || !sessionId) return null;
     try {
       const res = await callAigramAPI<AigramResponse<TotemSaveRow[]>>(
@@ -166,23 +193,22 @@ export function useDailyTap() {
         'GET',
       );
       const rows = Array.isArray(res?.data) ? res.data : [];
+      // First pass — match by milestone (the new shape).
       for (const row of rows) {
         if (!row.resource_data) continue;
         try {
           const parsed = JSON.parse(row.resource_data);
-          // Match either of two save shapes — local user state or totem record.
-          if (parsed && parsed.date === today && parsed.imageUrl && parsed.caption) {
+          if (parsed && parsed.milestone === milestone && parsed.imageUrl && parsed.caption) {
             return parsed as TodayTotem;
           }
-          // Some users' saves may carry .totem field
-          if (parsed && parsed.totem && parsed.totem.date === today) {
+          if (parsed && parsed.totem && parsed.totem.milestone === milestone) {
             return parsed.totem as TodayTotem;
           }
         } catch { /* skip corrupt */ }
       }
     } catch { /* network */ }
     return null;
-  }, [sessionId, today]);
+  }, [sessionId]);
 
   // Write the totem out to save list so others can read it.
   const writeTotem = useCallback((totem: TodayTotem) => {
@@ -193,23 +219,29 @@ export function useDailyTap() {
     });
   }, [sessionId]);
 
-  // Threshold watcher — when day_user_count crosses TOTEM_THRESHOLD and we
-  // have no totem yet, the first browser to notice kicks off generation.
+  // Threshold watcher — when total_user_count crosses a milestone (100,
+  // 200, 300, ...) and we don't already have a totem for that milestone,
+  // the first browser to notice kicks off generation. Lifetime cumulative
+  // model since 2026-06-12 (was daily; daily target unreachable at
+  // current traffic).
   useEffect(() => {
     if (!stats) return;
-    if (todayTotem) return;
-    if (stats.day_user_count < TOTEM_THRESHOLD) return;
+    const cm = currentMilestone(stats.total_user_count);
+    if (cm < TOTEM_THRESHOLD) return; // haven't crossed first milestone
+    // Already have THIS milestone's totem cached? Skip.
+    if (todayTotem && todayTotem.milestone === cm) return;
     if (generationStartedRef.current) return;
 
     let cancelled = false;
     generationStartedRef.current = true;
 
     (async () => {
-      // Re-fetch first — maybe someone else already generated.
-      const existing = await fetchTodayTotem();
+      // Re-fetch first — maybe someone else already generated this milestone.
+      const existing = await fetchTotemForMilestone(cm);
       if (cancelled) return;
       if (existing) {
         setTodayTotem(existing);
+        generationStartedRef.current = false;
         return;
       }
 
@@ -217,14 +249,15 @@ export function useDailyTap() {
       try {
         const [imageUrl, caption] = await Promise.all([
           generate({ prompt: totemPrompt(today) }),
-          chatSend(captionPrompt(today)).catch(() => 'an ordinary day, somehow held'),
+          chatSend(captionPrompt(today)).catch(() => 'a small thing carried by many'),
         ]);
         if (cancelled) return;
         const totem: TodayTotem = {
           date: today,
           imageUrl,
           caption: (caption || '').trim().toLowerCase().replace(/[.!?]+$/, ''),
-          summonedBy: stats.day_user_count,
+          summonedBy: stats.total_user_count,
+          milestone: cm,
         };
         setTodayTotem(totem);
         writeTotem(totem);
@@ -237,17 +270,21 @@ export function useDailyTap() {
     })();
 
     return () => { cancelled = true; };
-  }, [stats, todayTotem, today, generate, chatSend, fetchTodayTotem, writeTotem]);
+  }, [stats, todayTotem, today, generate, chatSend, fetchTotemForMilestone, writeTotem]);
 
-  // Look for an already-existing totem on mount / day change.
+  // Look for the current milestone's totem on mount / stats arrival.
   useEffect(() => {
+    if (!stats) return;
+    const cm = currentMilestone(stats.total_user_count);
+    if (cm < TOTEM_THRESHOLD) return;
+    if (todayTotem && todayTotem.milestone === cm) return;
     let cancelled = false;
     (async () => {
-      const existing = await fetchTodayTotem();
+      const existing = await fetchTotemForMilestone(cm);
       if (!cancelled && existing) setTodayTotem(existing);
     })();
     return () => { cancelled = true; };
-  }, [fetchTodayTotem]);
+  }, [stats, todayTotem, fetchTotemForMilestone]);
 
   // The single act: trigger event, mark locally, refresh stats.
   const tap = useCallback(() => {
@@ -444,7 +481,8 @@ export function useDailyTap() {
     date: today,
     imageUrl: '/one-tap-a-day/demo-totem.png',
     caption: 'the small bell no one rang today',
-    summonedBy: 142,
+    summonedBy: 1900,
+    milestone: 1900,
   };
   // Mock orbit avatars — used in every demo state to show the avatar ring
   // rather than the abstract glyph dots.
@@ -487,17 +525,17 @@ export function useDailyTap() {
   // water / star / creature) — see gen_demo_totem.py.
   const demoHistory: TodayTotem[] = [
     { date: '2026-05-20', imageUrl: '/one-tap-a-day/demo-totem-2.png',
-      caption: 'the lotus that opened in the dark', summonedBy: 156 },
+      caption: 'the lotus that opened in the dark', summonedBy: 1800, milestone: 1800 },
     { date: '2026-05-19', imageUrl: '/one-tap-a-day/demo-totem-3.png',
-      caption: 'the cup that held a small fire', summonedBy: 134 },
+      caption: 'the cup that held a small fire', summonedBy: 1700, milestone: 1700 },
     { date: '2026-05-18', imageUrl: '/one-tap-a-day/demo-totem-4.png',
-      caption: 'a flame remembered its own ember', summonedBy: 188 },
+      caption: 'a flame remembered its own ember', summonedBy: 1600, milestone: 1600 },
     { date: '2026-05-17', imageUrl: '/one-tap-a-day/demo-totem-5.png',
-      caption: 'the wave that decided how to crest', summonedBy: 119 },
+      caption: 'the wave that decided how to crest', summonedBy: 1500, milestone: 1500 },
     { date: '2026-05-16', imageUrl: '/one-tap-a-day/demo-totem-6.png',
-      caption: 'the moon that lost its name', summonedBy: 101 },
+      caption: 'the moon that lost its name', summonedBy: 1400, milestone: 1400 },
     { date: '2026-05-15', imageUrl: '/one-tap-a-day/demo-totem.png',
-      caption: 'a creature half-real half-spirit', summonedBy: 142 },
+      caption: 'a creature half-real half-spirit', summonedBy: 1300, milestone: 1300 },
   ];
 
   switch (demoMode) {

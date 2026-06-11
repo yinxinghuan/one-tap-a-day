@@ -35,7 +35,9 @@ const en: Dict = {
   streak_zero: 'No streak yet',
   today_others: '{n} others today',
   today_total: '{n} today',
-  to_totem: '{n} to totem',
+  to_totem: '{n} to next totem',
+  lifetime_count: '{n} all-time',
+  totem_milestone_label: 'Milestone {n}',
   totem_summoning: "Summoning today's totem…",
   totem_summoning_hint: 'this can take a few moments',
   totem_summoning_context: '{n} of you tapped today — the totem awakens',
@@ -76,7 +78,9 @@ const zh: Dict = {
   streak_zero: '还没开始',
   today_others: '今天还有 {n} 人',
   today_total: '今天 {n} 人',
-  to_totem: '还差 {n} 人解锁图腾',
+  to_totem: '还差 {n} 人解锁下个图腾',
+  lifetime_count: '至今 {n} 人',
+  totem_milestone_label: '图腾 #{n}',
   totem_summoning: '正在召唤今日图腾…',
   totem_summoning_hint: '需要几分钟',
   totem_summoning_context: '今天 {n} 人按下了 — 图腾醒了',
@@ -281,6 +285,8 @@ const fr: Dict = {
   if (!d.archive_count)              d.archive_count              = en.archive_count;
   if (!d.archive_hint)               d.archive_hint               = en.archive_hint;
   if (!d.onboard_title)              d.onboard_title              = en.onboard_title;
+  if (!d.lifetime_count)             d.lifetime_count             = en.lifetime_count;
+  if (!d.totem_milestone_label)      d.totem_milestone_label      = en.totem_milestone_label;
 });
 
 // Mystical lines rotated under the spinner while the AI is generating the

@@ -43,8 +43,19 @@ export default function OneTapADay() {
   }, [audioReadyRef]);
 
   useEffect(() => {
-    if ((todayTotem || totemSummoning) && tappedToday) {
-      setShowTotem(true);
+    // Auto-open the reveal modal only when:
+    //   · the user just tapped today AND
+    //   · either a summon is in flight (their tap may be the one that
+    //     crossed the milestone), or the cached totem we have was
+    //     unlocked on today's UTC date (it's the freshly-summoned one).
+    // Past-milestone totems (from previous days) stay accessible via
+    // the totem-trigger button, but don't auto-popup on every tap.
+    if (!tappedToday) return;
+    if (totemSummoning) { setShowTotem(true); return; }
+    if (todayTotem && todayTotem.date === todayTotem.date /* date present */) {
+      const unlockedToday = todayTotem.date && todayTotem.date.length === 10 &&
+        todayTotem.date === new Date().toISOString().slice(0, 10);
+      if (unlockedToday) setShowTotem(true);
     }
   }, [todayTotem, totemSummoning, tappedToday]);
 
@@ -126,6 +137,7 @@ export default function OneTapADay() {
 
         <Stats
           streak={stats.continuous_days}
+          totalCount={stats.total_user_count}
           todayCount={stats.day_user_count}
           tapped={tappedToday}
         />
@@ -175,7 +187,7 @@ export default function OneTapADay() {
         <TotemReveal
           totem={todayTotem}
           summoning={totemSummoning && !todayTotem}
-          summonCount={stats.day_user_count}
+          summonCount={stats.total_user_count}
           summonedAt={totemSummonedAt}
           onClose={() => setShowTotem(false)}
           onArchive={() => {

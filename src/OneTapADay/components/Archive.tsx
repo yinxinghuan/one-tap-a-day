@@ -51,6 +51,11 @@ export function Archive({ totems, onClose }: Props) {
                 <span className="otd-archive__cell-img">
                   <img src={totem.imageUrl} alt="" draggable={false} />
                 </span>
+                {totem.milestone != null && (
+                  <span className="otd-archive__cell-milestone">
+                    {t('totem_milestone_label', { n: totem.milestone })}
+                  </span>
+                )}
                 <span className="otd-archive__cell-date">{prettyDateShort(totem.date)}</span>
                 {totem.caption && (
                   <span className="otd-archive__cell-caption">"{trimCaption(totem.caption)}"</span>

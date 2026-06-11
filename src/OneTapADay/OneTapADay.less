@@ -664,6 +664,20 @@
     margin-bottom: 8px;
     text-shadow: 0 1px 0 rgba(0,0,0,0.6);
   }
+  // Lifetime cumulative — the new headline. Sits between the streak
+  // line (top) and the daily / progress row (bottom). Less loud than
+  // streak (which carries the gold) but more present than the row
+  // beneath.
+  &__lifetime {
+    font-family: 'Cinzel', serif;
+    font-size: 17px;
+    font-weight: 500;
+    color: @cream;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    opacity: 0.92;
+  }
   &__row {
     font-family: 'Montserrat', sans-serif;
     font-size: 14px;
@@ -1013,6 +1027,19 @@
     letter-spacing: 0.26em;
     color: @cream-dim;
     text-transform: uppercase;
+    font-weight: 500;
+  }
+  // Milestone label — "MILESTONE 100" — sits below the by-N-souls sub
+  // line. Pink to mirror the "to totem" colour on the home screen so the
+  // player reads it as "this is the next milestone after the one I just
+  // saw" continuity.
+  &__milestone {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    letter-spacing: 0.32em;
+    color: @pink;
+    text-transform: uppercase;
+    margin-top: -2px;
     font-weight: 500;
   }
   &__close {
@@ -1542,6 +1569,17 @@
         inset 0 0 12px rgba(0,0,0,0.25);
     }
     .otd-archive__cell-date { color: @pink; }
+  }
+  // Milestone label — sits between the totem image and the date row,
+  // so the archive reads "Milestone 100 / 2026-06-12 / caption".
+  &__cell-milestone {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    letter-spacing: 0.28em;
+    color: @pink;
+    text-transform: uppercase;
+    margin-top: 2px;
+    font-weight: 500;
   }
   &__cell-date {
     font-family: 'JetBrains Mono', monospace;
