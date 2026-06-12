@@ -127,7 +127,7 @@ export default function OneTapADay() {
       <main className="otd-main">
         <div className="otd-stage__center">
           <div className="otd-halo" aria-hidden />
-          <Orbit avatars={orbitUsers} count={stats.day_user_count} />
+          <Orbit avatars={orbitUsers} count={stats.total_user_count} />
           <TapButton tapped={tappedToday} onTap={handleTap} />
         </div>
 

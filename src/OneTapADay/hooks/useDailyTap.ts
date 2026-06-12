@@ -108,19 +108,6 @@ interface TotemSaveRow {
   resource_data: string;
 }
 
-/** Does this save row indicate the user tapped today? Accepts either the
- *  LocalState shape (has lastTapDay) or the TodayTotem shape (has date +
- *  imageUrl — whoever wrote the totem is by definition a today-tapper). */
-function savedRowIsTappedToday(resourceData: string | undefined, today: string): boolean {
-  if (!resourceData) return false;
-  try {
-    const parsed = JSON.parse(resourceData);
-    if (!parsed || typeof parsed !== 'object') return false;
-    if (parsed.lastTapDay === today) return true;
-    if (parsed.date === today && parsed.imageUrl) return true;
-    return false;
-  } catch { return false; }
-}
 
 export function useDailyTap() {
   const today = utcDayString();
@@ -400,7 +387,11 @@ export function useDailyTap() {
       if (cancelled) return;
       if (self) setOrbitUsers([self]);
 
-      // Then the rest of the recent community.
+      // Then the rest of the community. 2026-06-12 widened from "today only"
+      // to "anyone who has ever tapped": the new lifetime-cumulative goal
+      // wants the orbit to reflect the cumulative crowd, not the small
+      // single-day slice — at ~5 taps/day the today-only orbit read as
+      // lonely (1-2 known faces around a near-empty ring).
       try {
         const res = await callAigramAPI<AigramResponse<Array<{
           user_id: string;
@@ -415,15 +406,24 @@ export function useDailyTap() {
         const seen = new Set<string>([String(telegramId)]);
         for (const row of rows) {
           if (!row.user_id || seen.has(String(row.user_id))) continue;
-          // Only include users whose save indicates they tapped today.
-          // Two acceptable save shapes:
-          //   - LocalState:  { lastTapDay: "YYYY-MM-DD", ... }
-          //   - TodayTotem:  { date: "YYYY-MM-DD", imageUrl, caption, ... }
-          // (the totem writer is by definition someone who tapped today)
-          if (!savedRowIsTappedToday(row.resource_data, today)) continue;
+          // Accept any save shape that signals "this user has tapped at
+          // least once" — LocalState rows have a lastTapDay field; totem
+          // rows have a date + imageUrl; some intermediate writes may
+          // just be the bare save. We treat any non-empty resource as
+          // proof of a past tap.
+          if (!row.resource_data) continue;
+          try {
+            const parsed = JSON.parse(row.resource_data);
+            if (!parsed || typeof parsed !== 'object') continue;
+            const ever = parsed.lastTapDay || parsed.date || parsed.totem;
+            if (!ever) continue;
+          } catch { continue; }
           seen.add(String(row.user_id));
           otherIds.push(String(row.user_id));
-          if (otherIds.length >= 5) break;
+          // Cap at 12 — orbit displays up to MAX_SLOTS=50 positions, but
+          // 12 known faces is plenty to make the ring read as populated
+          // without burning too many per-user info lookups.
+          if (otherIds.length >= 12) break;
         }
         const others = (await Promise.all(otherIds.map(fetchUser)))
           .filter((u): u is OrbitUser => u != null);
