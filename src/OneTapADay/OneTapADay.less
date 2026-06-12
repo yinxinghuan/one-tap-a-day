@@ -493,25 +493,20 @@
   }
 }
 
-// Anonymous tapper — rendered as a small ochre votive glyph (square with a
-// notched center) instead of the original 6px dot. Mask-based so the
-// embedded SVG's inner notch reads as a darker inset, giving the ring
-// a "rows of carved votives" feel even when known faces don't fill it.
+// Anonymous tapper — a small ochre votive dot. Kept round (the square
+// glyph variant read as clunky); slightly larger + brighter than the
+// original 6px so the ring still feels populated when known faces don't
+// fill every slot.
 .otd-orbit__dot {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 9px;
-  height: 9px;
-  background-color: @ochre;
-  -webkit-mask-image: @glyph-svg-uri;
-          mask-image: @glyph-svg-uri;
-  -webkit-mask-size: contain;
-          mask-size: contain;
-  -webkit-mask-repeat: no-repeat;
-          mask-repeat: no-repeat;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: @ochre;
   opacity: 0.72;
-  filter: drop-shadow(0 0 5px @ochre-dim);
+  box-shadow: 0 0 6px @ochre-dim;
   z-index: 1;
   // Smooth reposition when the orbit reflows.
   transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
