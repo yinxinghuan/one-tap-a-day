@@ -420,10 +420,12 @@ export function useDailyTap() {
           } catch { continue; }
           seen.add(String(row.user_id));
           otherIds.push(String(row.user_id));
-          // Cap at 12 — orbit displays up to MAX_SLOTS=50 positions, but
-          // 12 known faces is plenty to make the ring read as populated
-          // without burning too many per-user info lookups.
-          if (otherIds.length >= 12) break;
+          // Cap at 36 — orbit displays up to MAX_SLOTS=50 positions. With
+          // the lifetime-cumulative pivot the ring is supposed to feel
+          // crowded, so we want most slots to be a real face rather than
+          // an anonymous votive dot. 36 lookups in one burst is fine for
+          // the platform user-info endpoint.
+          if (otherIds.length >= 36) break;
         }
         const others = (await Promise.all(otherIds.map(fetchUser)))
           .filter((u): u is OrbitUser => u != null);

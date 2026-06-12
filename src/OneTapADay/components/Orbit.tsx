@@ -79,19 +79,26 @@ export function Orbit({ avatars, count }: Props) {
     if (total === 0) return [];
     const k = known.length;
 
-    // Spread known avatars evenly across the ring.
-    // E.g. total=47, k=6 → avatars at slot indices 0, 7, 14, 21, 28, 35.
-    const step = k > 0 ? Math.floor(total / k) : 0;
+    // Spread known avatars evenly across the ring by mapping each known
+    // index j → slot floor(j * total / k). This is the only distribution
+    // that stays balanced when k is close to total (e.g. k=36, total=40):
+    // the old `step = floor(total/k)` collapsed to step=1 in that range
+    // and clustered every avatar at slots 0..k-1, leaving an obvious
+    // empty arc. With floor(j*total/k), positions are interleaved across
+    // the full ring regardless of the k:total ratio.
+    const slotToAvatar = new Map<number, OrbitAvatar>();
+    for (let j = 0; j < k; j++) {
+      const slotIdx = Math.floor((j * total) / k);
+      slotToAvatar.set(slotIdx, known[j]);
+    }
+
     const out: Slot[] = [];
     for (let i = 0; i < total; i++) {
       const angle = (i / total) * Math.PI * 2 - Math.PI / 2; // start at top
-      const avatarIdx = step > 0 && i % step === 0 && i / step < k
-        ? Math.floor(i / step)
-        : -1;
       out.push({
         i,
         angle,
-        avatar: avatarIdx >= 0 ? known[avatarIdx] : undefined,
+        avatar: slotToAvatar.get(i),
       });
     }
     return out;
