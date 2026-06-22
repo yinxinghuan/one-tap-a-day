@@ -15,7 +15,7 @@ export function Onboarding({ onDismiss }: Props) {
         <div className="otd-onboard__hero" aria-hidden>
           <div className="otd-onboard__hero-halo" />
           <img
-            src="/one-tap-a-day/demo-totem.png"
+            src={`${import.meta.env.BASE_URL}demo-totem.png`}
             alt=""
             draggable={false}
           />

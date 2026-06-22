@@ -481,7 +481,7 @@ export function useDailyTap() {
   };
   const demoTotem: TodayTotem = {
     date: today,
-    imageUrl: '/one-tap-a-day/demo-totem.png',
+    imageUrl: import.meta.env.BASE_URL + 'demo-totem.png',
     caption: 'the small bell no one rang today',
     summonedBy: 1900,
     milestone: 1900,
@@ -526,17 +526,17 @@ export function useDailyTap() {
   // woodblock medallion matching the daily theme (plant / tool / fire /
   // water / star / creature) — see gen_demo_totem.py.
   const demoHistory: TodayTotem[] = [
-    { date: '2026-05-20', imageUrl: '/one-tap-a-day/demo-totem-2.png',
+    { date: '2026-05-20', imageUrl: import.meta.env.BASE_URL + 'demo-totem-2.png',
       caption: 'the lotus that opened in the dark', summonedBy: 1800, milestone: 1800 },
-    { date: '2026-05-19', imageUrl: '/one-tap-a-day/demo-totem-3.png',
+    { date: '2026-05-19', imageUrl: import.meta.env.BASE_URL + 'demo-totem-3.png',
       caption: 'the cup that held a small fire', summonedBy: 1700, milestone: 1700 },
-    { date: '2026-05-18', imageUrl: '/one-tap-a-day/demo-totem-4.png',
+    { date: '2026-05-18', imageUrl: import.meta.env.BASE_URL + 'demo-totem-4.png',
       caption: 'a flame remembered its own ember', summonedBy: 1600, milestone: 1600 },
-    { date: '2026-05-17', imageUrl: '/one-tap-a-day/demo-totem-5.png',
+    { date: '2026-05-17', imageUrl: import.meta.env.BASE_URL + 'demo-totem-5.png',
       caption: 'the wave that decided how to crest', summonedBy: 1500, milestone: 1500 },
-    { date: '2026-05-16', imageUrl: '/one-tap-a-day/demo-totem-6.png',
+    { date: '2026-05-16', imageUrl: import.meta.env.BASE_URL + 'demo-totem-6.png',
       caption: 'the moon that lost its name', summonedBy: 1400, milestone: 1400 },
-    { date: '2026-05-15', imageUrl: '/one-tap-a-day/demo-totem.png',
+    { date: '2026-05-15', imageUrl: import.meta.env.BASE_URL + 'demo-totem.png',
       caption: 'a creature half-real half-spirit', summonedBy: 1300, milestone: 1300 },
   ];
 

@@ -156,7 +156,7 @@ export default function OneTapADay() {
       </main>
 
       <footer className="otd-foot">
-        <img src="/one-tap-a-day/alteru.svg" alt="alteru" className="otd-foot__mark" />
+        <img src={`${import.meta.env.BASE_URL}alteru.svg`} alt="alteru" className="otd-foot__mark" />
         <button
           type="button"
           className="otd-foot__archive"
