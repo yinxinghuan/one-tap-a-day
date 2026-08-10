@@ -12,8 +12,8 @@ import {
   useChat,
   callAigramAPI,
   postAigramAPI,
-  telegramId,
-  isInAigram,
+  getTelegramId,
+  isInAigramNow,
   getGameUuid,
   type AigramResponse,
 } from '@shared/runtime';
@@ -173,7 +173,7 @@ export function useDailyTap() {
   // to the most recent date-keyed save (for legacy support: pre-2026-06-12
   // saves had no milestone field).
   const fetchTotemForMilestone = useCallback(async (milestone: number): Promise<TodayTotem | null> => {
-    if (!isInAigram || !sessionId) return null;
+    if (!isInAigramNow() || !sessionId) return null;
     try {
       const res = await callAigramAPI<AigramResponse<TotemSaveRow[]>>(
         `/note/aigram/ai/game/get/data/list?session_id=${encodeURIComponent(sessionId)}`,
@@ -199,7 +199,7 @@ export function useDailyTap() {
 
   // Write the totem out to save list so others can read it.
   const writeTotem = useCallback((totem: TodayTotem) => {
-    if (!isInAigram || !sessionId || !telegramId) return;
+    if (!isInAigramNow() || !sessionId || !getTelegramId()!) return;
     postAigramAPI('/note/aigram/ai/game/save/data', {
       session_id: sessionId,
       resource_data: JSON.stringify(totem),
@@ -350,7 +350,7 @@ export function useDailyTap() {
     // isn't available, so we can't fetch a real name+avatar. Still seed
     // a generic "you" avatar so post-tap the player sees themselves
     // appear in the orbit. Replaced with the real user when available.
-    if (!isInAigram || !telegramId || !sessionId) {
+    if (!isInAigramNow() || !getTelegramId()! || !sessionId) {
       setOrbitUsers([{
         id: 'you',
         name: 'You',
@@ -377,13 +377,13 @@ export function useDailyTap() {
             name: res.data.name,
             url: res.data.head_url,
             initial: (res.data.name || '?').slice(0, 1).toUpperCase(),
-            isSelf: String(id) === String(telegramId),
+            isSelf: String(id) === String(getTelegramId()!),
           };
         } catch { return null; }
       };
 
       // Self first — instant feedback that "I'm in the orbit".
-      const self = await fetchUser(String(telegramId));
+      const self = await fetchUser(String(getTelegramId()!));
       if (cancelled) return;
       if (self) setOrbitUsers([self]);
 
@@ -403,7 +403,7 @@ export function useDailyTap() {
         );
         const rows = Array.isArray(res?.data) ? res.data : [];
         const otherIds: string[] = [];
-        const seen = new Set<string>([String(telegramId)]);
+        const seen = new Set<string>([String(getTelegramId()!)]);
         for (const row of rows) {
           if (!row.user_id || seen.has(String(row.user_id))) continue;
           // Accept any save shape that signals "this user has tapped at
@@ -444,7 +444,7 @@ export function useDailyTap() {
     justTapped,
     stats,
     canEmit,
-    isInAigram,
+    isInAigram: isInAigramNow(),
     seenOnboarding: local.seenOnboarding,
     markOnboarded,
     longestStreak: local.longestStreak,
