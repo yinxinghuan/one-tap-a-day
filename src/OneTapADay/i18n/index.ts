@@ -7,7 +7,7 @@ const SUPPORTED: Locale[] = ['en', 'zh', 'es', 'pt', 'ru', 'ja', 'ko', 'fr'];
 
 function detectLocale(): Locale {
   if (typeof localStorage !== 'undefined') {
-    const override = localStorage.getItem('game_locale');
+    const override = alteruLocalStorage.getItem('game_locale');
     if (override && SUPPORTED.includes(override as Locale)) return override as Locale;
   }
   const lang = (navigator.language || 'en').toLowerCase();
