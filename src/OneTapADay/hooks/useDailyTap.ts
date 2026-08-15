@@ -95,6 +95,23 @@ const DEFAULT_LOCAL: LocalState = {
   totemHistory: [],
 };
 
+const FALLBACK_CAPTION = 'a small thing carried by many';
+
+async function captionWithFallback(request: Promise<string>, timeoutMs = 12_000): Promise<string> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<string>(resolve => {
+    timer = setTimeout(() => resolve(FALLBACK_CAPTION), timeoutMs);
+  });
+  try {
+    return await Promise.race([
+      request.catch(() => FALLBACK_CAPTION),
+      timeout,
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
 export interface OrbitUser {
   id: string;
   name?: string;        // shown radially outside the avatar
@@ -124,6 +141,14 @@ export function useDailyTap() {
   const [justTapped, setJustTapped] = useState(false);
 
   const generationStartedRef = useRef(false);
+  const generationRunRef = useRef(0);
+  const chatSendRef = useRef(chatSend);
+  chatSendRef.current = chatSend;
+
+  // Depend on the scalar count, not the whole stats object. Refreshing stats
+  // replaces that object even when the count is unchanged; doing so used to
+  // cancel an in-flight generation and leave the lock stuck forever.
+  const totalUserCount = stats?.total_user_count ?? 0;
 
   // Initial local load
   useEffect(() => {
@@ -191,6 +216,12 @@ export function useDailyTap() {
           if (parsed && parsed.totem && parsed.totem.milestone === milestone) {
             return parsed.totem as TodayTotem;
           }
+          if (parsed && Array.isArray(parsed.totemHistory)) {
+            const archived = parsed.totemHistory.find(
+              (totem: TodayTotem) => totem?.milestone === milestone && totem.imageUrl && totem.caption,
+            );
+            if (archived) return archived as TodayTotem;
+          }
         } catch { /* skip corrupt */ }
       }
     } catch { /* network */ }
@@ -212,52 +243,68 @@ export function useDailyTap() {
   // model since 2026-06-12 (was daily; daily target unreachable at
   // current traffic).
   useEffect(() => {
-    if (!stats) return;
-    const cm = currentMilestone(stats.total_user_count);
+    const cm = currentMilestone(totalUserCount);
     if (cm < TOTEM_THRESHOLD) return; // haven't crossed first milestone
     // Already have THIS milestone's totem cached? Skip.
     if (todayTotem && todayTotem.milestone === cm) return;
     if (generationStartedRef.current) return;
 
     let cancelled = false;
+    const runId = ++generationRunRef.current;
     generationStartedRef.current = true;
 
     (async () => {
-      // Re-fetch first — maybe someone else already generated this milestone.
-      const existing = await fetchTotemForMilestone(cm);
-      if (cancelled) return;
-      if (existing) {
-        setTodayTotem(existing);
-        generationStartedRef.current = false;
-        return;
-      }
-
-      setTotemSummoning(true);
       try {
+        // Re-fetch first — maybe someone else already generated this milestone.
+        const existing = await fetchTotemForMilestone(cm);
+        if (cancelled) return;
+        if (existing) {
+          setTodayTotem(existing);
+          return;
+        }
+
+        setTotemSummoning(true);
+
+        // Caption generation is best-effort and bounded. Its hook updates
+        // internal history when it resolves, so call it through a ref instead
+        // of making this effect depend on the changing send callback.
+        const captionPromise = captionWithFallback(
+          chatSendRef.current(captionPrompt(today)),
+        );
         const [imageUrl, caption] = await Promise.all([
           generate({ prompt: totemPrompt(today) }),
-          chatSend(captionPrompt(today)).catch(() => 'a small thing carried by many'),
+          captionPromise,
         ]);
         if (cancelled) return;
         const totem: TodayTotem = {
           date: today,
           imageUrl,
           caption: (caption || '').trim().toLowerCase().replace(/[.!?]+$/, ''),
-          summonedBy: stats.total_user_count,
+          summonedBy: totalUserCount,
           milestone: cm,
         };
         setTodayTotem(totem);
         writeTotem(totem);
-      } catch {
-        // Generation failed — clear the "started" flag so a refresh can retry.
-        generationStartedRef.current = false;
+      } catch (error) {
+        console.warn('[one-tap-a-day] totem generation failed', error);
       } finally {
-        if (!cancelled) setTotemSummoning(false);
+        // Only the active run may release the lock. This also makes React
+        // StrictMode's setup/cleanup replay safe during local development.
+        if (generationRunRef.current === runId) {
+          generationStartedRef.current = false;
+          if (!cancelled) setTotemSummoning(false);
+        }
       }
     })();
 
-    return () => { cancelled = true; };
-  }, [stats, todayTotem, today, generate, chatSend, fetchTotemForMilestone, writeTotem]);
+    return () => {
+      cancelled = true;
+      if (generationRunRef.current === runId) {
+        generationRunRef.current += 1;
+        generationStartedRef.current = false;
+      }
+    };
+  }, [totalUserCount, todayTotem?.milestone, today, generate, fetchTotemForMilestone, writeTotem]);
 
   // Look for the current milestone's totem on mount / stats arrival.
   useEffect(() => {
