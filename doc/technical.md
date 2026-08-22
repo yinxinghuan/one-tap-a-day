@@ -6,7 +6,7 @@
 - 类型：casual
 - 简述：每天只能按一次的大铜钮。一下点完，剩下 24 小时只能看。看自己连续多少天、今天全球多少人也点了、距离 100 人解锁今日图腾还差多远——满了，AI 实时生成一张当日图腾画 + 一句神谕，全员看揭晓。错过当天图腾就永远归档了。Streak 断了会留墓碑。一个日常仪式，一个集体玩具。AlterU 系列。
 - 框架 / 语言 / 构建：React, TypeScript, Vite, Less
-- 渲染方式：Canvas/WebGL
+- 渲染方式：React DOM + Less；图腾图片以圆形遮罩展示。
 - 依赖摘录：@types/react@^18.2.0, @types/react-dom@^18.2.0, @vitejs/plugin-react@^4.2.1, less@^4.2.0, react@^18.2.0, react-dom@^18.2.0, typescript@^5.3.3, vite@^5.1.0
 - 平台元信息：meta.title=One Tap a Day；cover_url=/poster.png；category=casual；uuid=339da758-f70f-4d70-a8a8-127ca6140b24
 
@@ -67,7 +67,7 @@
 - 多语言：包含 i18n / locale 检测或 `t()` 文案函数。
 - 存储：使用 localStorage、useGameSave 或 persist 保存分数、收藏、墙数据或本地状态。
 - Aigram 运行时：接入 `@shared/runtime` 或平台桥接能力，用于用户、资料页、分享、通知或平台 API。
-- AI / 生成接口：包含图像生成、视觉识别、ref_url 或 img2img 相关流程。
+- AI / 生成接口：图腾通过 AlterU 独立媒体服务 `https://game.aiwaves.tech/alteru-media/api/v1/images/generations` 以 `text` 模式生成，工作负载使用固定游戏 UUID `339da758-f70f-4d70-a8a8-127ca6140b24`，输出规格为 512×512。神谕短句仍通过平台 `useChat` 大语言模型能力生成，不混入媒体接口。
 - 社交墙 / 归档：包含 wall、gallery、feed 或 archive 数据流与浏览界面。
 
 ## 4. 扩展点
@@ -77,3 +77,4 @@
 - 调视觉：修改主样式文件中的颜色、间距、动画时长、网格尺寸和响应式规则。
 - 改文案：修改 i18n 字典、组件内标题按钮文案，保持 zh/en 同步。
 - 加平台能力：在已有 `@shared/runtime`、useGameSave、排行榜、墙或通知调用附近扩展，避免另起一套存储。
+- 调整图像生成：修改 `src/OneTapADay/utils/totem.ts` 的提示词；传输、轮询、幂等键与结构化错误处理位于 `src/shared/runtime/media.ts` 和 `src/shared/runtime/useGenImage.ts`。
